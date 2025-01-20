@@ -1,0 +1,91 @@
+Learning Objectives
+
+Explain Python’s background and important features
+Python is an interpreted computer programming language in which you can enter code instructions 
+one at a time or as part of a larger program, which comprises many instructions.
+Syntax is a set of rules that dictate how to specify instructions in a programming language.
+Packages are libraries of code modules that other programming code can access and use.
+
+Describe free, open-source software (FOSS)
+FOSS is an inclusive term that covers both free software and open-source software.
+
+The definition of free software is that the users have the freedom to run, copy, 
+distribute, study, change, and improve the software (Free Software Foundation, 2019). 
+Open-source software requires that the license to use the software shall not restrict 
+any party from selling or giving away the software as a component of a larger software 
+distribution.
+
+Summarize Python’s user community and available resources
+Python has a robust user community and extensive resources available for learners and developers. The official Python website (https://www.python.org) provides downloads, documentation, and other resources. The latest Python versions are platform-independent, running on Windows, Linux/Unix, Mac OS X, and more. Documentation for both current and older versions is available at https://docs.python.org/dev/. The Python Package Index (PyPI), 
+located at https://pypi.org, hosts over 212,000 Python projects, offering packages for various applications.
+
+As of late 2019, the Python version status was:  
+- Python 3.9: In development  
+- Python 3.8: Stable  
+- Python 3.7: Stable  
+- Python 3.6: Security fixes  
+- Python 2.7: Stable  
+
+Python is free and open-source software (FOSS), widely used in fields like social sciences 
+and business for data analytics and application development.
+
+Install Python’s platform-independent interpreter
+Completed.
+
+Execute Python code in an Interactive Development Environment (IDE)
+Completed
+
+Describe the two data sets used throughout the book
+Taxi Trips Data set: Comprised of 26 fields. over 100 million records. With field subsets
+for meaning and documentation. 
+
+
+General Social Survey (GSS) data set: has over 5000 cariables collected over a period of more than 
+40 years. subsets fields and meanings are described in the codebook. 
+(Complete Data set)	 http://www.gss.norc.org/Get-The-Data
+(Codebook)		http://gss.norc.org/get-documentation
+
+GLOSSARY
+
+Case sensitive
+Interpreting uppercase letters (capitals) as different from lowercase letters.
+
+Free open-source software (FOSS)
+Inclusive term that covers both free software and open-source software.
+
+Free software
+Users have the freedom to run, copy, distribute, study, change, and improve the software.
+
+Interactive Development Environment (IDE)
+Contains facilities for writing and editing code as well as testing and debugging code.
+
+Module
+A text file that contains Python code.
+
+Open-source software
+Requires that the license to use the software shall not restrict any party from selling 
+or giving away the software as a component of a larger software distribution.
+
+Package
+Library of code modules used/accessed by programming code.
+
+Package manager
+A program to install libraries of code.
+
+pip
+A package manager that comes already installed in Python.
+
+Platform
+The combination of a device and an operating system.
+
+Platform independent
+Software that can run on most, if not all, of the latest operating systems/computing platforms.
+
+Python
+An interpreted computer programming language.
+
+Python distribution
+Modified package that includes additional functionality. Also referred to as an alternative bundle.
+
+Syntax
+A set of rules that dictates how to specify instructions of code in a programming language.
