@@ -4,5 +4,3 @@ def fahrenheit_to_celsius():
     print(f"Your temperature of {user_input} degrees F. is equal to {celcius} degrees C.")
 
 fahrenheit_to_celsius()
-fahrenheit_to_celsius()
-fahrenheit_to_celsius()
