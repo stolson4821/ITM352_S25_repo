@@ -7,4 +7,4 @@
 
 
 ## One liner
-print(f"You would weigh {float(input('Enter a weight in lbs: ')) * 0.453592} kilograms in Europe.")
+print(f"You would weigh {round(float(input('Enter a weight in lbs: ')) * 0.45359235 ,2)} kilograms in Europe.")
