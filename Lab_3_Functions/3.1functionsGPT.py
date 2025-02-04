@@ -9,7 +9,7 @@ try:
     # Generate and test encryption to confirm the library works
     key = Fernet.generate_key()
     cipher_suite = Fernet(key)
-    message = b"Hello, World!"
+    message = input("Input a string to encrypt:")
     encrypted_message = cipher_suite.encrypt(message)
     decrypted_message = cipher_suite.decrypt(encrypted_message)
 
