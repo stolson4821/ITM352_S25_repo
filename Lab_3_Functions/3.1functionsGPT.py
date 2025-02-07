@@ -1,6 +1,7 @@
 import subprocess
 import sys
-
+## this is for studying purposes only to research what all the items are
+## and what they do.
 # Check if the cryptography library is installed
 try:
     import cryptography
