@@ -1,2 +1,2 @@
-odd_numbers = list(range(1, 50, 2))
+odd_numbers = list(range(1, 51, 2))
 print(odd_numbers)
