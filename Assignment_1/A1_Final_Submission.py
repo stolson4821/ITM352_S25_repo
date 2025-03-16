@@ -1,7 +1,7 @@
 import json
 import random
 
-#Define the file where high scores will be stored.
+#Define the file where scores will be stored.
 SCORE_FILE = "scores.json"
 
 #Function questions from a JSON file.
@@ -36,7 +36,7 @@ def ask_question(question_data):
     question = question_data["question"]
     options = question_data["options"]
     
-    #Ensure the answer(s) is/are in a list format, even if it's a single correct answer.
+    #Ensure the answer is in a list format.
     correct_answers = question_data["answer"] if isinstance(question_data["answer"], list) else [question_data["answer"]]
     
     #Shuffle the answer options to randomize their order.
