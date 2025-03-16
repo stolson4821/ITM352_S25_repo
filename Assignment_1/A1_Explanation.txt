@@ -1,0 +1,51 @@
+Abstract:
+1. Load questions and scores.
+2. Prompt user for username.
+3. Ask each question with two attempts for each.
+4. Calculate score based on correct answers.
+5. Display the final score and update high scores.
+6. Determine and display the Grand Champion.
+7. Save the updated scores to file.
+
+Detailed List of actions:
+1. Define the file for storing high scores:
+
+2. Creates a constant SCORE_FILE that points to the file scores.json where the scores will be saved.
+    Load questions from a JSON file:
+
+3. Loads the list of questions from a1questions.json, which contains the questions and their possible answers.
+    Load existing high scores:
+
+4. Tries to open scores.json and load the saved high scores. If the file is not found, returns an empty dictionary.
+    Save the current scores to a JSON file:
+
+5. Opens scores.json in write mode and saves the current scores in JSON format.
+    Prompt the user for their username:
+
+6. Asks the user to input their username and removes any extra spaces.
+    Present a question and handle the user's response:
+
+7. Extracts the question text and answer options from the provided question data.
+    Randomizes the order of answer options to avoid bias.
+    Displays the question and options with labels (A, B, C, etc.) for the user to choose from.
+    Allows the user to input multiple answers (comma-separated) and checks if the input is valid.
+    Provides two attempts to answer the question and adjusts the score accordingly based on whether the user answers correctly.
+    Loop through the questions:
+
+8. Loops through all the questions, presenting each one to the user and collecting their answers.
+    Adds the score for each question to the user’s total score.
+    Display the final score:
+
+9. Displays the user's final score after they’ve answered all the questions.
+    Check if the user achieved a new high score:
+
+10. Compares the current score with the user's highest score. If it’s a new high score, updates the high score for the user.
+    Save the updated scores:
+
+11. Saves the updated scores to scores.json.
+    Determine the grand champion:
+
+12. Identifies the user with the highest score across all users and displays their name and score.
+    Check if the script is being run directly:
+
+13. Ensures the quiz game is only run if the script is executed directly, rather than imported as a module.
