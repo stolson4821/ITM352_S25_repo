@@ -1,0 +1,77 @@
+Abstract:
+1. Load questions and scores.
+2. Prompt user for username.
+3. Ask each question with two attempts for each.
+4. Calculate score based on correct answers.
+5. Display the final score and update high scores.
+6. Determine and display the Grand Champion.
+7. Save the updated scores to file.
+
+Detailed List of actions:
+1. Initial Setup
+Importing Required Libraries:
+The code begins by importing necessary libraries: json for working with JSON data 
+and random for shuffling the answer options.
+
+2. Defining File Paths
+Score and Question File:
+The path to the scores file (scores.json) and the questions file (a1questions.json) 
+are specified. These files will store and load data during the quiz.
+
+3. Loading Questions
+Loading Questions Function (load_questions):
+The function load_questions() reads the questions from the a1questions.json file.
+It loads the data into Python using json.load() and returns it as a list of questions.
+
+4. Loading High Scores
+Loading Scores Function (load_scores):
+The function load_scores() attempts to read existing scores from scores.json.
+If the file doesn’t exist, it catches the FileNotFoundError and returns an empty dictionary, 
+meaning no previous scores are saved.
+
+5. Saving Scores
+Saving Scores Function (save_scores):
+After the quiz is completed, scores are saved back to the scores.json file using json.dump().
+This keeps track of each user’s high score.
+
+6. User Input
+Getting Username (get_user):
+The program prompts the player to enter a username. This username is used to track their 
+individual score and compare it against their previous high scores.
+
+7. Asking Questions
+Asking Questions (ask_question):
+The program then proceeds to ask each question by calling ask_question() for every question 
+in the list of questions.
+The question and options are displayed to the user after randomizing the order of options 
+for variety.
+The user has two attempts to answer correctly. The program checks if the answer is correct 
+and awards points:
+1 point if correct on the first attempt.
+0.5 points if correct on the second attempt.
+0 points if both attempts are wrong.
+If an invalid option is selected, the program prompts the user again until a valid input is 
+given or the attempts run out.
+
+8. Ending the Game
+Calculating Total Score:
+Once all questions have been asked, the game ends. The total score (the sum of points from all 
+questions) is displayed.
+The program checks if the player achieved a new high score compared to their previous best score.
+If a new high score is achieved, it’s updated in the scores file.
+
+9. Determining the Grand Champion
+Finding the Grand Champion:
+The program looks through all stored scores to determine the "Grand Champion" – the user with 
+the highest score across all players.
+The Grand Champion’s name and score are then displayed.
+
+10. Saving Updated Scores
+Saving the Final Scores:
+The scores, including any updates from the current game, are saved back to scores.json using save_scores().
+
+11. Execution Check
+Running the Game:
+Finally, the program checks if it is being run directly (not imported as a module) 
+using if __name__ == "__main__".
+If the condition is true, it calls the quiz_game() function to start the quiz.

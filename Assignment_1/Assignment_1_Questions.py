@@ -52,8 +52,13 @@ guitar_questions = {
     }
 }
 
-# Displaying the questions and answers
+
+#Displaying the questions and answers
 for q_num, q_data in guitar_questions.items():
     print(f"Q{q_num}: {q_data['question']}")
     print(f"Options: {', '.join(q_data['options'])}")
     print(f"Answer: {q_data['answer']}\n")
+
+# Save the dictionary as a JSON file
+with open('a1questions.json', 'w') as json_file:
+    json.dump(guitar_questions, json_file, indent=4)
