@@ -6,6 +6,7 @@ import requests
 from io import StringIO
 
 # Function to download the CSV file from Google Drive using the file ID
+    #this was an AI assisted function cause i was having SSL issues getting the file with how we were doing it in class. 
 def download_sales_data(file_id):
     print("Downloading sales data from Google Drive...")
     download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
@@ -17,18 +18,18 @@ def download_sales_data(file_id):
         print(f"Error downloading file: {e}")
         exit()
 
-# Function to load sales data from a CSV file and handle errors
+# Function to load sales data from a CSV file and handle errors (in class)
 def load_sales_data():
     file_id = "1Fv_vhoN4sTrUaozFPfzr0NCyHJLIeXEA"  # Google Drive file ID
     print("Loading sales data...")
     start_time = time.time()
     
-    # Download the data
+    # Download the data with time it took. (in class)
     csv_data = download_sales_data(file_id)
     
     try:
         data = pd.read_csv(csv_data)
-        # Replace missing values with zero
+        # Replace missing values with zero 
         data = data.fillna(0)
         load_time = time.time() - start_time
         print(f"Data loaded successfully in {load_time:.2f} seconds.")
@@ -46,7 +47,7 @@ def load_sales_data():
         print(f"Error loading data: {e}")
         exit()
 
-# Define the total sales function (quantity * unit_price)
+# Define the total sales function (quantity * unit_price) (no AI Used)
 def calculate_total_sales(data):
     if 'quantity' in data.columns and 'unit_price' in data.columns:
         # Calculate total sales as quantity * unit_price for each row
@@ -56,7 +57,7 @@ def calculate_total_sales(data):
         data['total_sales'] = 0
     return data
 
-# Export DataFrame to Excel
+# Export DataFrame to Excel (In class)(no AI used)
 def export_to_excel(df, filename):
     try:
         print("Exporting DataFrame:")
@@ -70,7 +71,7 @@ def export_to_excel(df, filename):
     except Exception as e:
         print(f"Error exporting data: {e}")
 
-# Get user selection from a list of options
+# Get user selection from a list of options (in class) (AI assisted only help to enumerate options)
 def get_user_selection(options, prompt):
     print(prompt)
     for i, option in enumerate(options):
@@ -83,7 +84,7 @@ def get_user_selection(options, prompt):
         print("Invalid input.")
         return []
 
-# 1 Show the first n rows of sales data
+# 1 Show the first n rows of sales data (in class) (No AI Used)
 def display_initial_rows(data):
     num_rows = input(f"How many rows to display? (1 to {len(data)}, 'all' for all, or press Enter to skip): ").strip()
     if num_rows == 'all':
@@ -95,7 +96,7 @@ def display_initial_rows(data):
     else:
         print("Invalid input. Please enter a valid number or 'all'.")
 
-# 2 Predefined pivot table: Total sales by region and order_type
+# 2 Predefined pivot table: Total sales by region and order_type (In class partial) (No AI Used)
 def total_sales_by_region_order_type(data):
     try:
         # Calculate total sales first
@@ -110,12 +111,12 @@ def total_sales_by_region_order_type(data):
         # Ask if user wants to export to Excel
         export = input("Would you like to export the results to Excel? (y/n): ").strip().lower()
         if export == 'y':
-            filename = input("Enter filename for export: ").strip()
+            filename = input("Name the File: ").strip()
             export_to_excel(pivot.reset_index(), filename)
     except Exception as e:
         print("Error:", e)
 
-# 3 Average sales by region, state, and order_type
+# 3 Average sales by region, state, and order_type (no AI Used) This was a headache for me. once i had a working function i had GPT remove redundant lines. It used to be dragged out to line 170. haha
 def average_sales_by_region_state_order_type(data):
     try:
         # Calculate total sales
@@ -148,7 +149,7 @@ def average_sales_by_region_state_order_type(data):
         # Export to Excel if user agrees
         export = input("Would you like to export the results to Excel? (y/n): ").strip().lower()
         if export == 'y':
-            filename = input("Enter filename for export: ").strip()
+            filename = input("Name the File: ").strip()
             print("Exporting pivot table...")
             print("Pivot shape before export:", pivot.shape)
             # Ensure we reset index and check data before exporting
@@ -157,7 +158,7 @@ def average_sales_by_region_state_order_type(data):
     except Exception as e:
         print(f"Error: {e}")
 
-# 4 Create a custom pivot table based on user input
+# 4 Create a custom pivot table based on user input (AI used only involved to flatten multi indexed columns and fill Nan values with 0)
 def generate_custom_pivot_table(data):
     rows = get_user_selection(list(data.columns), "Select rows:")
     cols = get_user_selection(list(data.columns), "Select columns:")
@@ -192,7 +193,7 @@ def generate_custom_pivot_table(data):
         # Export to Excel if user agrees
         export = input("Would you like to export the results to Excel? (y/n): ").strip().lower()
         if export == 'y':
-            filename = input("Enter filename for export: ").strip()
+            filename = input("Name the File: ").strip()
             print("Exporting pivot table...")
             # Ensure we reset index and check data before exporting
             export_to_excel(pivot.reset_index(), filename)
@@ -202,7 +203,7 @@ def generate_custom_pivot_table(data):
         print(f"Error generating custom pivot table: {e}")
         return None  # Return None in case of an error
 
-#5 Compare exported Pivot tables
+#5 Compare exported Pivot tables (No AI used other than to look up the propper steps to complete this step by asking it "what steps do i need to take to complete this tak in python")
 def compare_pivot_tables_side_by_side(data):
     try:
         # Create the first pivot table using the custom pivot table generation function
@@ -227,7 +228,7 @@ def compare_pivot_tables_side_by_side(data):
         # Optionally, allow the user to export the comparison
         export = input("Would you like to export the comparison to Excel? (y/n): ").strip().lower()
         if export == 'y':
-            filename = input("Enter filename for export: ").strip()
+            filename = input("Name the File: ").strip()
             with pd.ExcelWriter(f"{filename}_comparison.xlsx") as writer:
                 # Export both pivot tables and the comparison
                 pivot1.to_excel(writer, sheet_name="Pivot1")
@@ -243,7 +244,7 @@ def exit_program(_=None):
     print("Goodbye!")
     exit()
 
-# Display the menu and get user choice
+# Display the menu and get user choice (In class No AI used)
 def display_menu():
     options = [
         ("Show rows", display_initial_rows),
@@ -268,7 +269,7 @@ def display_menu():
         except ValueError:
             print("Invalid input. Please enter a number.")
 
-# Main function to run the dashboard
+# Main function to run the dashboard (in class No AI used)
 def main():
     # Load data
     data = load_sales_data()
