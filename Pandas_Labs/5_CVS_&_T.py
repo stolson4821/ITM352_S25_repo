@@ -15,15 +15,12 @@ response = requests.get(url, verify=False)  # Disable SSL verification (temporar
 if response.status_code == 200:
     csv_data = StringIO(response.text)  # Convert response content to file-like object
     df = pd.read_csv(csv_data)  # Read CSV data into DataFrame
-    print(df.head(10))
+    #print(df.head(10))
 else:
     print("Failed to download file. Check the file ID and permissions.")
 
-
-
-# Print the first few rows
-    #print(df.head())
-
+###For the following only activate the letter code at a time. Each one is made so that 
+###they can be activated one at a time or ran all simultaniously.
 #A. Print out the dimensions of the data frame and show the first 10 rows:
 #print(df)
     #print(f'The dimentions are {df.shape}')
