@@ -6,7 +6,7 @@ import requests
 from io import StringIO
 
 # Function to download the CSV file from Google Drive using the file ID
-    #this was an AI assisted function cause i was having SSL issues getting the file with how we were doing it in class. 
+    #this was an AI assisted function cause I was having SSL issues getting the file with how we were doing it in class. 
 def download_sales_data(file_id):
     print("Downloading sales data from Google Drive...")
     download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
