@@ -1,9 +1,12 @@
 from flask import Flask, render_template, request
+import datetime
 
 app = Flask(__name__)
 
 # Hardcoded user database
 USERS = {
+    "port": "port123",
+    "Teachasst": "teachme123",
     "spencer": "spencer123",
     "olson": "olson123"
 }
