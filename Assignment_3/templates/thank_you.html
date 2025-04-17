@@ -6,6 +6,8 @@
 </head>
 <body>
     <h2>Thanks for completing the quiz, {{ user }}!</h2>
+    <p>Your score: {{ score }} out of {{ total }}</p>
     <p>Your responses have been recorded.</p>
+    <a href="{{ url_for('index') }}">Return to Home</a>
 </body>
 </html>
