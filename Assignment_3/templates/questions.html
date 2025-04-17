@@ -1,26 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Quiz</title>
+    <meta charset="UTF-8">
+    <title>Quiz App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h2>Guitar Knowledge Quiz</h2>
-    <form method="post">
-        {% for idx, q in enumerate(questions) %}
-            <fieldset>
-                <legend>{{ idx + 1 }}. {{ q.question }}</legend>
-                {% for opt in q.options %}
-                    <label>
-                        {% if q.answer is iterable and q.answer is not string %}
-                            <input type="checkbox" name="q{{ idx }}" value="{{ opt }}"> {{ opt }}<br>
-                        {% else %}
-                            <input type="radio" name="q{{ idx }}" value="{{ opt }}"> {{ opt }}<br>
-                        {% endif %}
-                    </label>
-                {% endfor %}
-            </fieldset>
-        {% endfor %}
-        <input type="submit" value="Submit Quiz">
-    </form>
+<div class="container">
+    <h1>Quiz App</h1>
+
+    {% if done %}
+        <h2>Quiz Complete!</h2>
+        <p>Your Score: {{ score }} out of {{ total }}</p>
+    {% else %}
+        <form id="quiz-form">
+            <p><strong>Question {{ q_number }}:</strong> {{ question['question'] }}</p>
+            {% for opt in question['options'] %}
+                <div>
+                    <input type="radio" name="answer" value="{{ opt }}" required>
+                    <label>{{ opt }}</label>
+                </div>
+            {% endfor %}
+            <button type="submit">Submit</button>
+        </form>
+        <p id="result"></p>
+    {% endif %}
+</div>
+
+<script>
+    const form = document.getElementById('quiz-form');
+    if (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch("/submit", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+            const feedback = result.correct
+                ? "✅ Correct!"
+                : `❌ Incorrect. The correct answer is: ${result.correct_answer}`;
+            document.getElementById("result").textContent = feedback;
+
+            setTimeout(() => window.location.reload(), 1500);
+        });
+    }
+</script>
 </body>
 </html>

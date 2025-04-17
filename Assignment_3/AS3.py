@@ -12,6 +12,7 @@ USERS = {
     "visitor": "visit123"
 }
 
+# Load questions from file at app startup
 with open("questions.json") as f:
     QUESTIONS = json.load(f)
 
@@ -37,17 +38,13 @@ def ready_to_begin():
         return redirect(url_for("login"))
     return render_template("ready_to_begin.html", user=session["username"])
 
-@app.route("/quiz")
-def quiz():
-    with open("questions.json", "r") as f:
-        questions = json.load(f)
-    return render_template("questions.html", questions=questions, enumerate=enumerate)
+@app.route("/quiz", methods=["GET", "POST"])
 def quiz():
     if "username" not in session:
         return redirect(url_for("login"))
 
     if request.method == "POST":
-        session["answers"] = request.form
+        session["answers"] = request.form.to_dict()
         return redirect(url_for("thank_you"))
 
     return render_template("questions.html", questions=QUESTIONS)
