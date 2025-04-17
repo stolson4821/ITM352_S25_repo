@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz</title>
+</head>
+<body>
+    <h2>Guitar Knowledge Quiz</h2>
+    <form method="post">
+        {% for idx, q in enumerate(questions) %}
+            <fieldset>
+                <legend>{{ idx + 1 }}. {{ q.question }}</legend>
+                {% for opt in q.options %}
+                    <label>
+                        {% if q.answer is iterable and q.answer is not string %}
+                            <input type="checkbox" name="q{{ idx }}" value="{{ opt }}"> {{ opt }}<br>
+                        {% else %}
+                            <input type="radio" name="q{{ idx }}" value="{{ opt }}"> {{ opt }}<br>
+                        {% endif %}
+                    </label>
+                {% endfor %}
+            </fieldset>
+        {% endfor %}
+        <input type="submit" value="Submit Quiz">
+    </form>
+</body>
+</html>
