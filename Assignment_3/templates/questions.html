@@ -1,27 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <meta charset="UTF-8">
-    <title>Quiz</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>Question {{ number }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h2>Quiz Time!</h2>
-    <form method="post">
-        {% for i, question in questions.items() %}
-            <div class="question-block">
-                <p><strong>Question {{ i|int + 1 }}:</strong> {{ question["question"] }}</p>
-                {% for option in question["options"] %}
-                    <label>
-                        <input type="radio" name="q{{ i }}" value="{{ option }}" required>
-                        {{ option }}
-                    </label><br>
-                {% endfor %}
-            </div>
-            <br>
-        {% endfor %}
-        <button type="submit">Submit</button>
-    </form>
+  <h2>Question {{ number }}</h2>
+  <form method="POST">
+    <p>{{ question['question'] }}</p>
+    {% for choice in question['choices'] %}
+      <label>
+        <input type="radio" name="answer" value="{{ choice }}" required> {{ choice }}
+      </label><br>
+    {% endfor %}
+    <button type="submit">Submit</button>
+  </form>
 </body>
 </html>
