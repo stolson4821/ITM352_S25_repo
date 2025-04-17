@@ -4,7 +4,7 @@ import json
 app = Flask(__name__)
 app.secret_key = "ITM352"
 
-# Hardcoded user database
+# Simple user database
 USERS = {
     "port": "port123",
     "Teachasst": "teachme123",
@@ -33,13 +33,14 @@ def login():
         else:
             return render_template("login.html", error="Invalid credentials")
     return render_template("login.html")
-
+#I added this page because there was always a google password save/security 
+#breach pop up so i added a page to ensure that the user is ready. 
 @app.route("/ready_to_begin")
 def ready_to_begin():
     if "username" not in session:
         return redirect(url_for("login"))
     return render_template("ready_to_begin.html", user=session["username"])
-
+#Begin the questions
 @app.route("/quiz", methods=["GET", "POST"])
 def quiz():
     if "username" not in session:
