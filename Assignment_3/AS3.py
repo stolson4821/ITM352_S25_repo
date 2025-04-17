@@ -37,7 +37,11 @@ def ready_to_begin():
         return redirect(url_for("login"))
     return render_template("ready_to_begin.html", user=session["username"])
 
-@app.route("/quiz", methods=["GET", "POST"])
+@app.route("/quiz")
+def quiz():
+    with open("questions.json", "r") as f:
+        questions = json.load(f)
+    return render_template("questions.html", questions=questions, enumerate=enumerate)
 def quiz():
     if "username" not in session:
         return redirect(url_for("login"))
