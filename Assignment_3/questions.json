@@ -25,9 +25,9 @@
         "answer": "The part where the strings are tightened"
     },
     {
-        "question": "Which of the following components contribute to an electric guitar’s ability to produce amplified sound? List all that apply. (ex a,b)",
-        "choices": ["Pickups", "Strings", "Fretboard", "Amplifier"],
-        "answer": ["Pickups", "Amplifier"]
+        "question": "Which of the following components contribute to an electric guitar’s ability to produce amplified sound?",
+        "choices": ["Strap", "Strings", "Fretboard", "Amplifier"],
+        "answer": ["Amplifier"]
     },
     {
         "question": "What does the guitar's 'truss rod' do?",
