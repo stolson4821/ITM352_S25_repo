@@ -88,21 +88,29 @@ def start_quiz(difficulty):
     
     # Set up quiz based on difficulty
     if difficulty == "easy":
-        questions = ALL_QUESTIONS[:5]
-    elif difficulty == "hard":
-        questions = ALL_QUESTIONS[-5:]
-    else:  # medium
-        questions = ALL_QUESTIONS[5:10] if len(ALL_QUESTIONS) >= 10 else ALL_QUESTIONS[2:7]
+        # First 5 questions or all if less than 5
+        questions = ALL_QUESTIONS[:5] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS
+    else:  # hard
+        # Last 5 questions or all if less than 5
+        questions = ALL_QUESTIONS[-5:] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS
+    
+    # Make a deep copy of questions to avoid modifying the original
+    questions_copy = []
+    for q in questions:
+        questions_copy.append({
+            "question": q["question"],
+            "choices": q["choices"].copy(),
+            "answer": q["answer"]
+        })
     
     # Randomize question order
-    random.shuffle(questions)
+    random.shuffle(questions_copy)
     
     # Randomize answer choices for each question
-    for q in questions:
+    for q in questions_copy:
         choices = q["choices"].copy()
-        random.shuffle(choices)
-        # Save original answer
         correct_answer = q["answer"]
+        random.shuffle(choices)
         # Find the new position of the correct answer
         correct_index = choices.index(correct_answer)
         # Update question with shuffled choices and new correct index
@@ -110,7 +118,7 @@ def start_quiz(difficulty):
         q["correct_index"] = correct_index
 
     # Store in session
-    session["questions"] = questions
+    session["questions"] = questions_copy
     session["difficulty"] = difficulty
     session["start_time"] = time.time()
     session["question_index"] = 0
@@ -123,7 +131,7 @@ def start_quiz(difficulty):
 def ready_to_begin():
     if "username" not in session:
         return redirect(url_for("login"))
-    return render_template("ready_to_begin.html", user=session["username"], difficulty=session.get("difficulty", "medium"))
+    return render_template("ready_to_begin.html", user=session["username"], difficulty=session.get("difficulty", "easy"))
 
 @app.route("/quiz", methods=["GET", "POST"])
 def quiz():
@@ -153,8 +161,6 @@ def quiz():
             # Score based on difficulty
             if session["difficulty"] == "easy":
                 session["score"] += 1
-            elif session["difficulty"] == "medium":
-                session["score"] += 2
             else:  # hard
                 session["score"] += 3
         
@@ -176,7 +182,7 @@ def thank_you():
         return redirect(url_for("login"))
     
     username = session["username"]
-    difficulty = session.get("difficulty", "medium")
+    difficulty = session.get("difficulty", "easy")
     score = session.get("score", 0)
     answers = session.get("answers", [])
     questions = session.get("questions", [])
@@ -229,14 +235,12 @@ def thank_you():
 # RESTful API endpoints
 @app.route("/api/questions", methods=["GET"])
 def api_questions():
-    difficulty = request.args.get("difficulty", "medium")
+    difficulty = request.args.get("difficulty", "easy")
     
     if difficulty == "easy":
-        questions = ALL_QUESTIONS[:5]
-    elif difficulty == "hard":
-        questions = ALL_QUESTIONS[-5:]
-    else:  # medium
-        questions = ALL_QUESTIONS[5:10] if len(ALL_QUESTIONS) >= 10 else ALL_QUESTIONS[2:7]
+        questions = ALL_QUESTIONS[:5] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS
+    else:  # hard
+        questions = ALL_QUESTIONS[-5:] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS
     
     return jsonify(questions)
 
