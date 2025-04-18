@@ -1,0 +1,273 @@
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify, make_response
+import json
+import random
+import time
+from datetime import datetime
+
+app = Flask(__name__)
+app.secret_key = "ITM352"
+
+# Hardcoded user database
+USERS = {
+    "port": "port123",
+    "Teachasst": "teachme123",
+    "spencer": "spencer123",
+    "visitor": "visit123"
+}
+
+# Load questions from file at app startup
+with open("questions.json") as f:
+    ALL_QUESTIONS = json.load(f)
+
+# Scores database
+try:
+    with open("scores.json", "r") as f:
+        SCORES = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    SCORES = {}
+
+def save_scores():
+    with open("scores.json", "w") as f:
+        json.dump(SCORES, f)
+
+def get_leaderboard():
+    all_scores = []
+    for username, scores in SCORES.items():
+        for score_data in scores:
+            all_scores.append({
+                "username": username,
+                "score": score_data["score"],
+                "total": score_data["total"],
+                "percentage": score_data["percentage"],
+                "difficulty": score_data["difficulty"],
+                "date": score_data["date"]
+            })
+    
+    # Sort by percentage, then by score
+    sorted_scores = sorted(all_scores, key=lambda x: (x["percentage"], x["score"]), reverse=True)
+    return sorted_scores[:5]  # Return top 5
+
+@app.route("/")
+def index():
+    # Check if user has visited before
+    if "username" in session:
+        return render_template("index.html", returning=True, username=session["username"])
+    return render_template("index.html", returning=False)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    leaderboard = get_leaderboard()
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if USERS.get(username) == password:
+            session["username"] = username
+            session["score"] = 0
+            session["question_index"] = 0
+            
+            # Initialize user in scores database if new
+            if username not in SCORES:
+                SCORES[username] = []
+                save_scores()
+                
+            return redirect(url_for("select_difficulty"))
+        else:
+            return render_template("login.html", error="Invalid credentials", leaderboard=leaderboard)
+    return render_template("login.html", leaderboard=leaderboard)
+
+@app.route("/select_difficulty")
+def select_difficulty():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    return render_template("select_difficulty.html", user=session["username"])
+
+@app.route("/start_quiz/<difficulty>")
+def start_quiz(difficulty):
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    # Set up quiz based on difficulty
+    if difficulty == "easy":
+        questions = ALL_QUESTIONS[:5]
+    elif difficulty == "hard":
+        questions = ALL_QUESTIONS[-5:]
+    else:  # medium
+        questions = ALL_QUESTIONS[5:10] if len(ALL_QUESTIONS) >= 10 else ALL_QUESTIONS[2:7]
+    
+    # Randomize question order
+    random.shuffle(questions)
+    
+    # Randomize answer choices for each question
+    for q in questions:
+        choices = q["choices"].copy()
+        random.shuffle(choices)
+        # Save original answer
+        correct_answer = q["answer"]
+        # Find the new position of the correct answer
+        correct_index = choices.index(correct_answer)
+        # Update question with shuffled choices and new correct index
+        q["choices"] = choices
+        q["correct_index"] = correct_index
+
+    # Store in session
+    session["questions"] = questions
+    session["difficulty"] = difficulty
+    session["start_time"] = time.time()
+    session["question_index"] = 0
+    session["score"] = 0
+    session["answers"] = []  # To track user answers
+    
+    return redirect(url_for("ready_to_begin"))
+
+@app.route("/ready_to_begin")
+def ready_to_begin():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    return render_template("ready_to_begin.html", user=session["username"], difficulty=session.get("difficulty", "medium"))
+
+@app.route("/quiz", methods=["GET", "POST"])
+def quiz():
+    if "username" not in session or "questions" not in session:
+        return redirect(url_for("login"))
+
+    questions = session.get("questions", [])
+    index = session.get("question_index", 0)
+    
+    # Process answer submission
+    if request.method == "POST":
+        selected_answer = request.form.get("answer")
+        current_question = questions[index]
+        correct_answer = current_question["choices"][current_question["correct_index"]]
+        
+        # Record answer
+        is_correct = (selected_answer == correct_answer)
+        session["answers"].append({
+            "question": current_question["question"],
+            "selected": selected_answer,
+            "correct": correct_answer,
+            "is_correct": is_correct
+        })
+        
+        # Update score
+        if is_correct:
+            # Score based on difficulty
+            if session["difficulty"] == "easy":
+                session["score"] += 1
+            elif session["difficulty"] == "medium":
+                session["score"] += 2
+            else:  # hard
+                session["score"] += 3
+        
+        # Move to next question
+        index += 1
+        session["question_index"] = index
+
+    # Check if we've finished all questions
+    if index >= len(questions):
+        return redirect(url_for("thank_you"))
+    
+    # Show the current question
+    question = questions[index]
+    return render_template("questions.html", question=question, number=index + 1, total=len(questions))
+
+@app.route("/thank_you")
+def thank_you():
+    if "username" not in session or "questions" not in session:
+        return redirect(url_for("login"))
+    
+    username = session["username"]
+    difficulty = session.get("difficulty", "medium")
+    score = session.get("score", 0)
+    answers = session.get("answers", [])
+    questions = session.get("questions", [])
+    total = len(questions)
+    
+    # Calculate time taken
+    start_time = session.get("start_time", time.time())
+    time_taken = round(time.time() - start_time, 2)
+    
+    # Calculate stats
+    correct_count = sum(1 for answer in answers if answer["is_correct"])
+    incorrect_count = total - correct_count
+    percentage = (correct_count / total) * 100 if total > 0 else 0
+    
+    # Save score history
+    score_data = {
+        "score": score,
+        "total": total,
+        "percentage": percentage,
+        "time_taken": time_taken,
+        "difficulty": difficulty,
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "answers": answers
+    }
+    
+    if username in SCORES:
+        SCORES[username].append(score_data)
+    else:
+        SCORES[username] = [score_data]
+    save_scores()
+    
+    # Get user history
+    history = SCORES.get(username, [])
+    
+    # Get leaderboard
+    leaderboard = get_leaderboard()
+    
+    return render_template("thank_you.html", 
+                           user=username, 
+                           score=score, 
+                           total=total,
+                           time_taken=time_taken,
+                           correct_count=correct_count,
+                           incorrect_count=incorrect_count,
+                           percentage=percentage,
+                           history=history,
+                           leaderboard=leaderboard,
+                           difficulty=difficulty)
+
+# RESTful API endpoints
+@app.route("/api/questions", methods=["GET"])
+def api_questions():
+    difficulty = request.args.get("difficulty", "medium")
+    
+    if difficulty == "easy":
+        questions = ALL_QUESTIONS[:5]
+    elif difficulty == "hard":
+        questions = ALL_QUESTIONS[-5:]
+    else:  # medium
+        questions = ALL_QUESTIONS[5:10] if len(ALL_QUESTIONS) >= 10 else ALL_QUESTIONS[2:7]
+    
+    return jsonify(questions)
+
+@app.route("/api/scores", methods=["GET"])
+def api_scores():
+    username = request.args.get("username")
+    if username:
+        user_scores = SCORES.get(username, [])
+        return jsonify(user_scores)
+    return jsonify(SCORES)
+
+@app.route("/api/leaderboard", methods=["GET"])
+def api_leaderboard():
+    return jsonify(get_leaderboard())
+
+@app.route("/api/save_score", methods=["POST"])
+def api_save_score():
+    data = request.get_json()
+    username = data.get("username")
+    score_data = data.get("score_data")
+    
+    if not username or not score_data:
+        return jsonify({"error": "Missing data"}), 400
+    
+    if username in SCORES:
+        SCORES[username].append(score_data)
+    else:
+        SCORES[username] = [score_data]
+    save_scores()
+    
+    return jsonify({"success": True})
+
+if __name__ == "__main__":
+    app.run(debug=True)

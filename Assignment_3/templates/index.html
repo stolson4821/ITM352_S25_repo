@@ -4,8 +4,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <title>Welcome</title>
 </head>
-<body>
-    <h1>Welcome to the Guitar Quiz!</h1>
-    <a href="{{ url_for('login') }}">Login to Start</a>
-</body>
+    <body>
+        <h1>Welcome to the Guitar Quiz!</h1>
+    {% if returning %}
+        <h2>Welcome back, {{ username }}!</h2>
+        <p>We're glad to see you again!</p>
+    {% endif %}
+        <a href="{{ url_for('login') }}">Login to Start</a>
+    </body>
 </html>

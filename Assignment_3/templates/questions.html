@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Question {{ number }}</title>
+  <title>Question {{ number }} of {{ total }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h2>Question {{ number }}</h2>
+  <h2>Question {{ number }} of {{ total }}</h2>
   <form method="POST">
     <p>{{ question['question'] }}</p>
     {% for choice in question['choices'] %}
