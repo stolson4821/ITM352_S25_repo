@@ -6,12 +6,15 @@ body {
     margin: 0;
     padding: 0;
     background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png'); /* Soft paper-like texture */
+    padding-bottom: 30px;
 }
 
 h1, h2, h3, legend {
     font-family: 'Georgia', serif;
     color: #5a786b;
     text-shadow: 1px 1px #d0e7dc;
+    text-align: center;
+    margin-top: 20px;
 }
 
 a, button, input[type="submit"] {
@@ -24,6 +27,9 @@ a, button, input[type="submit"] {
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
     font-family: 'Georgia', serif;
+    text-decoration: none;
+    display: inline-block;
+    margin: 10px 5px;
 }
 
 a:hover, button:hover, input[type="submit"]:hover {
@@ -84,4 +90,67 @@ footer {
     margin-top: 30px;
     font-size: 0.9em;
     color: #6c8572;
+}
+
+/* New styles for enhanced features */
+.difficulty-buttons {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.difficulty-buttons a {
+    margin: 0 10px;
+    padding: 15px 25px;
+    font-size: 1.2em;
+}
+
+table {
+    width: 90%;
+    max-width: 800px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+th {
+    background-color: #a5c9a1;
+    color: white;
+    font-weight: bold;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:hover {
+    background-color: #f5fff5;
+}
+
+.score-summary, .history, .leaderboard {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.improvement {
+    color: #d86f6f;
+    font-weight: bold;
+}
+
+.achievement {
+    color: #6fb46f;
+    font-weight: bold;
 }

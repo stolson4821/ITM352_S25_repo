@@ -14,5 +14,29 @@
         Password: <input type="password" name="password"><br><br>
         <input type="submit" value="Login">
     </form>
+    
+    {% if leaderboard %}
+    <div class="leaderboard">
+        <h3>Top 5 Players</h3>
+        <table>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Score</th>
+                <th>Difficulty</th>
+                <th>Date</th>
+            </tr>
+            {% for i in range(leaderboard|length) %}
+            <tr>
+                <td>{{ i+1 }}</td>
+                <td>{{ leaderboard[i].username }}</td>
+                <td>{{ leaderboard[i].score }} ({{ leaderboard[i].percentage }}%)</td>
+                <td>{{ leaderboard[i].difficulty }}</td>
+                <td>{{ leaderboard[i].date }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
 </body>
 </html>

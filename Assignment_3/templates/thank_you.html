@@ -6,8 +6,71 @@
 </head>
 <body>
     <h2>Thanks for completing the quiz, {{ user }}!</h2>
-    <p>Your score: {{ score }} out of {{ total }}</p>
-    <p>Your responses have been recorded.</p>
+    
+    <div class="score-summary">
+        <h3>Your Results ({{ difficulty }} difficulty)</h3>
+        <p>Score: {{ score }} points</p>
+        <p>Correct answers: {{ correct_count }} out of {{ total }} ({{ percentage }}%)</p>
+        <p>Time taken: {{ time_taken }} seconds</p>
+        
+        {% if percentage < 60 %}
+        <p class="improvement">Areas for improvement: You might want to review your guitar knowledge fundamentals.</p>
+        {% elif percentage < 80 %}
+        <p class="improvement">Areas for improvement: You have good knowledge but could improve on some techniques.</p>
+        {% else %}
+        <p class="achievement">Great job! You have excellent guitar knowledge!</p>
+        {% endif %}
+    </div>
+    
+    {% if history %}
+    <div class="history">
+        <h3>Your Quiz History</h3>
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Difficulty</th>
+                <th>Score</th>
+                <th>Percentage</th>
+                <th>Time</th>
+            </tr>
+            {% for entry in history %}
+            <tr>
+                <td>{{ entry.date }}</td>
+                <td>{{ entry.difficulty }}</td>
+                <td>{{ entry.score }}</td>
+                <td>{{ entry.percentage }}%</td>
+                <td>{{ entry.time_taken }} sec</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+    
+    {% if leaderboard %}
+    <div class="leaderboard">
+        <h3>Top 5 Players</h3>
+        <table>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Score</th>
+                <th>Difficulty</th>
+                <th>Date</th>
+            </tr>
+            {% for i in range(leaderboard|length) %}
+            <tr>
+                <td>{{ i+1 }}</td>
+                <td>{{ leaderboard[i].username }}</td>
+                <td>{{ leaderboard[i].score }} ({{ leaderboard[i].percentage }}%)</td>
+                <td>{{ leaderboard[i].difficulty }}</td>
+                <td>{{ leaderboard[i].date }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+    
+    <a href="{{ url_for('select_difficulty') }}">Play Again</a>
     <a href="{{ url_for('index') }}">Return to Home</a>
 </body>
 </html>
