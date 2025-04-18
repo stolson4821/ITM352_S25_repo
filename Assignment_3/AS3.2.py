@@ -16,8 +16,25 @@ USERS = {
 }
 
 # Load questions from file at app startup
-with open("questions.json") as f:
-    ALL_QUESTIONS = json.load(f)
+try:
+    with open("questions.json") as f:
+        ALL_QUESTIONS = json.load(f)
+        
+    # Validate questions data structure
+    for i, q in enumerate(ALL_QUESTIONS):
+        if "question" not in q or "choices" not in q or "answer" not in q:
+            print(f"Warning: Question at index {i} has invalid format")
+            continue
+        
+        # Ensure answer is in choices
+        if q["answer"] not in q["choices"]:
+            print(f"Warning: Answer '{q['answer']}' not in choices for question: {q['question']}")
+            # Add the answer to choices if not present
+            q["choices"].append(q["answer"])
+            
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    print(f"Error loading questions: {e}")
+    ALL_QUESTIONS = []
 
 # Scores database
 try:
@@ -86,21 +103,33 @@ def start_quiz(difficulty):
     if "username" not in session:
         return redirect(url_for("login"))
     
+    # Error check - make sure we have questions
+    if not ALL_QUESTIONS:
+        return render_template("error.html", message="No questions available. Please check questions.json file.")
+    
     # Set up quiz based on difficulty
     if difficulty == "easy":
         # First 5 questions or all if less than 5
-        questions = ALL_QUESTIONS[:5] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS
+        questions = ALL_QUESTIONS[:5] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS.copy()
     else:  # hard
         # Last 5 questions or all if less than 5
-        questions = ALL_QUESTIONS[-5:] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS
+        questions = ALL_QUESTIONS[-5:] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS.copy()
     
     # Make a deep copy of questions to avoid modifying the original
     questions_copy = []
     for q in questions:
+        # Ensure answer is in choices (safety check)
+        choices = q["choices"].copy()
+        correct_answer = q["answer"]
+        
+        if correct_answer not in choices:
+            # Add the answer to choices if not present
+            choices.append(correct_answer)
+        
         questions_copy.append({
             "question": q["question"],
-            "choices": q["choices"].copy(),
-            "answer": q["answer"]
+            "choices": choices,
+            "answer": correct_answer
         })
     
     # Randomize question order
@@ -110,12 +139,24 @@ def start_quiz(difficulty):
     for q in questions_copy:
         choices = q["choices"].copy()
         correct_answer = q["answer"]
+        
+        # Double check answer is in choices
+        if correct_answer not in choices:
+            choices.append(correct_answer)
+            
         random.shuffle(choices)
-        # Find the new position of the correct answer
-        correct_index = choices.index(correct_answer)
-        # Update question with shuffled choices and new correct index
-        q["choices"] = choices
-        q["correct_index"] = correct_index
+        
+        try:
+            # Find the new position of the correct answer
+            correct_index = choices.index(correct_answer)
+            # Update question with shuffled choices and new correct index
+            q["choices"] = choices
+            q["correct_index"] = correct_index
+        except ValueError:
+            # Fallback if something goes wrong
+            q["choices"] = choices
+            q["correct_index"] = 0  # Default to first option
+            q["choices"][0] = correct_answer  # Set first option to correct answer
 
     # Store in session
     session["questions"] = questions_copy
@@ -141,11 +182,20 @@ def quiz():
     questions = session.get("questions", [])
     index = session.get("question_index", 0)
     
+    # Safety check
+    if not questions or index >= len(questions):
+        return redirect(url_for("thank_you"))
+    
     # Process answer submission
     if request.method == "POST":
         selected_answer = request.form.get("answer")
         current_question = questions[index]
-        correct_answer = current_question["choices"][current_question["correct_index"]]
+        
+        # Safety check for correct_index
+        if "correct_index" not in current_question or current_question["correct_index"] >= len(current_question["choices"]):
+            correct_answer = current_question["answer"]
+        else:
+            correct_answer = current_question["choices"][current_question["correct_index"]]
         
         # Record answer
         is_correct = (selected_answer == correct_answer)
@@ -178,7 +228,7 @@ def quiz():
 
 @app.route("/thank_you")
 def thank_you():
-    if "username" not in session or "questions" not in session:
+    if "username" not in session:
         return redirect(url_for("login"))
     
     username = session["username"]
@@ -186,14 +236,14 @@ def thank_you():
     score = session.get("score", 0)
     answers = session.get("answers", [])
     questions = session.get("questions", [])
-    total = len(questions)
+    total = len(questions) if questions else 0
     
     # Calculate time taken
     start_time = session.get("start_time", time.time())
     time_taken = round(time.time() - start_time, 2)
     
     # Calculate stats
-    correct_count = sum(1 for answer in answers if answer["is_correct"])
+    correct_count = sum(1 for answer in answers if answer.get("is_correct", False))
     incorrect_count = total - correct_count
     percentage = (correct_count / total) * 100 if total > 0 else 0
     
@@ -238,9 +288,9 @@ def api_questions():
     difficulty = request.args.get("difficulty", "easy")
     
     if difficulty == "easy":
-        questions = ALL_QUESTIONS[:5] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS
+        questions = ALL_QUESTIONS[:5] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS.copy()
     else:  # hard
-        questions = ALL_QUESTIONS[-5:] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS
+        questions = ALL_QUESTIONS[-5:] if len(ALL_QUESTIONS) >= 5 else ALL_QUESTIONS.copy()
     
     return jsonify(questions)
 
