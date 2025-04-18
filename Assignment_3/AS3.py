@@ -11,11 +11,13 @@ app.secret_key = "ITM352"
 USERS = {
     "port": "port123",
     "Teachasst": "teachme123",
+    "port": "port123",
+    "teachasst":"teachme123",
     "spencer": "spencer123",
     "visitor": "visit123"
 }
 
-# Load questions from file at app startup
+# Load questions from JSON file at app startup
 try:
     with open("questions.json") as f:
         ALL_QUESTIONS = json.load(f)
@@ -325,4 +327,3 @@ def api_save_score():
 
 if __name__ == "__main__":
     app.run(debug=True)
-    
