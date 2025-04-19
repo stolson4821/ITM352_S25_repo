@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Select Difficulty</title>
+    <link rel="stylesheet" href="path/to/ghibli-style.css">
+    <!--<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> -->    <title>Select Difficulty</title>
 </head>
 <body>
     <h2>Welcome, {{ user }}!</h2>
@@ -11,5 +11,6 @@
         <a href="{{ url_for('start_quiz', difficulty='easy') }}">Easy</a>
         <a href="{{ url_for('start_quiz', difficulty='hard') }}">Hard</a>
     </div>
+    <script src="path/to/cherry-blossom.js"></script>
 </body>
 </html>

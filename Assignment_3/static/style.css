@@ -1,156 +1,372 @@
-/* Studio Ghibli Inspired Styles I USED AI FOR THIS */
-body {
+:root {
+    --primary-color: #5a786b;
+    --secondary-color: #a5c9a1;
+    --hover-color: #82b28c;
+    --background-start: #e6f0ec;
+    --background-end: #fef6e4;
+    --text-color: #3b3b3b;
+    --light-accent: #d0e7dc;
+    --border-color: #c0d9c2;
+    --transition-speed: 0.3s;
+    --cherry-color-1: #ffb7c5;
+    --cherry-color-2: #ffd1dc;
+  }
+  
+  body {
     font-family: 'Segoe UI', 'Verdana', sans-serif;
-    background: linear-gradient(to bottom, #e6f0ec 0%, #fef6e4 100%);
-    color: #3b3b3b;
+    background: linear-gradient(to bottom, var(--background-start) 0%, var(--background-end) 100%);
+    color: var(--text-color);
     margin: 0;
     padding: 0;
-    background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png'); /* Soft paper-like texture */
+    background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
     padding-bottom: 30px;
-}
-
-h1, h2, h3, legend {
+    overflow-x: hidden;
+    position: relative;
+    transition: background var(--transition-speed) ease;
+  }
+  
+  h1, h2, h3, legend {
     font-family: 'Georgia', serif;
-    color: #5a786b;
-    text-shadow: 1px 1px #d0e7dc;
+    color: var(--primary-color);
+    text-shadow: 1px 1px var(--light-accent);
     text-align: center;
     margin-top: 20px;
-}
-
-a, button, input[type="submit"] {
-    background-color: #a5c9a1;
+    transition: color var(--transition-speed) ease;
+  }
+  
+  a, button, input[type="submit"] {
+    background-color: var(--secondary-color);
     border: none;
     padding: 10px 15px;
     border-radius: 12px;
     color: white;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: all var(--transition-speed) ease;
     font-family: 'Georgia', serif;
     text-decoration: none;
     display: inline-block;
     margin: 10px 5px;
-}
-
-a:hover, button:hover, input[type="submit"]:hover {
-    background-color: #82b28c;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  a:hover, button:hover, input[type="submit"]:hover {
+    background-color: var(--hover-color);
     transform: scale(1.05);
-}
-
-form {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  /* Button ripple effect */
+  a::after, button::after, input[type="submit"]::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, #fff 10%, transparent 10%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(10, 10);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.5s;
+  }
+  
+  a:active::after, button:active::after, input[type="submit"]:active::after {
+    transform: scale(0, 0);
+    opacity: 0.3;
+    transition: 0s;
+  }
+  
+  form {
     background-color: rgba(255, 255, 255, 0.8);
     padding: 20px;
     border-radius: 15px;
     margin: 20px auto;
     width: 80%;
     max-width: 600px;
-    box-shadow: 0 0 20px rgba(123, 168, 140, 0.2);
-}
-
-fieldset {
-    border: 2px dashed #c0d9c2;
+    box-shadow: 0 5px 20px rgba(123, 168, 140, 0.2);
+    transition: all var(--transition-speed) ease;
+    transform-origin: center;
+  }
+  
+  form:hover {
+    box-shadow: 0 8px 25px rgba(123, 168, 140, 0.3);
+    transform: translateY(-3px);
+  }
+  
+  fieldset {
+    border: 2px dashed var(--border-color);
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 20px;
-    background-color: #f9fdf8;
-}
-
-legend {
+    background-color: rgba(249, 253, 248, 0.7);
+    transition: all var(--transition-speed) ease;
+  }
+  
+  legend {
     font-size: 1.2em;
     font-weight: bold;
-}
-
-label {
+    padding: 0 10px;
+  }
+  
+  label {
     display: block;
     margin-bottom: 10px;
     padding-left: 10px;
     font-size: 1em;
     cursor: pointer;
-}
-
-input[type="text"], input[type="password"] {
-    padding: 10px;
+    transition: all var(--transition-speed) ease;
+  }
+  
+  input[type="text"], input[type="password"] {
+    padding: 12px;
     border-radius: 10px;
-    border: 1px solid #b4c8b4;
+    border: 1px solid var(--border-color);
     width: 100%;
     margin-bottom: 15px;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-}
-
-p {
-    background-color: #fffefb;
-    padding: 10px;
-    border-left: 4px solid #9cc49b;
+    transition: all var(--transition-speed) ease;
+    font-size: 1em;
+  }
+  
+  input[type="text"]:focus, input[type="password"]:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 5px rgba(165, 201, 161, 0.5);
+  }
+  
+  p {
+    background-color: rgba(255, 254, 251, 0.8);
+    padding: 12px;
+    border-left: 4px solid var(--secondary-color);
     border-radius: 5px;
-    margin: 10px 0;
-}
-
-footer {
+    margin: 12px 0;
+    transition: all var(--transition-speed) ease;
+    line-height: 1.5;
+  }
+  
+  footer {
     text-align: center;
     margin-top: 30px;
     font-size: 0.9em;
-    color: #6c8572;
-}
-
-/* New styles for enhanced features */
-.difficulty-buttons {
+    color: var(--primary-color);
+    padding: 15px;
+    transition: all var(--transition-speed) ease;
+  }
+  
+  .difficulty-buttons {
     text-align: center;
-    margin: 20px 0;
-}
-
-.difficulty-buttons a {
+    margin: 25px 0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .difficulty-buttons a {
     margin: 0 10px;
     padding: 15px 25px;
     font-size: 1.2em;
-}
-
-table {
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  
+  .difficulty-buttons a:hover {
+    transform: translateY(-5px);
+  }
+  
+  table {
     width: 90%;
     max-width: 800px;
     margin: 20px auto;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-th, td {
-    padding: 12px 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all var(--transition-speed) ease;
+  }
+  
+  th, td {
+    padding: 14px 18px;
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
-}
-
-th {
-    background-color: #a5c9a1;
+    transition: all var(--transition-speed) ease;
+  }
+  
+  th {
+    background-color: var(--secondary-color);
     color: white;
     font-weight: bold;
-}
-
-tr:last-child td {
+  }
+  
+  tr:last-child td {
     border-bottom: none;
-}
-
-tr:hover {
-    background-color: #f5fff5;
-}
-
-.score-summary, .history, .leaderboard {
-    background-color: white;
+  }
+  
+  tr {
+    transition: background-color var(--transition-speed) ease;
+  }
+  
+  tr:hover {
+    background-color: rgba(245, 255, 245, 0.6);
+  }
+  
+  .score-summary, .history, .leaderboard {
+    background-color: rgba(255, 255, 255, 0.8);
     border-radius: 10px;
-    padding: 15px;
-    margin: 20px auto;
+    padding: 20px;
+    margin: 25px auto;
     width: 90%;
     max-width: 800px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-.improvement {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: all var(--transition-speed) ease;
+  }
+  
+  .improvement {
     color: #d86f6f;
     font-weight: bold;
-}
-
-.achievement {
+    transition: color var(--transition-speed) ease;
+  }
+  
+  .achievement {
     color: #6fb46f;
     font-weight: bold;
-}
+    transition: color var(--transition-speed) ease;
+  }
+  
+  /* Media Queries for Responsiveness */
+  @media (max-width: 768px) {
+    form, .score-summary, .history, .leaderboard {
+      width: 90%;
+      padding: 15px;
+    }
+    
+    .difficulty-buttons a {
+      padding: 12px 20px;
+      margin: 5px;
+    }
+    
+    table {
+      width: 95%;
+    }
+  }
+  
+  /* Dark Theme Styles */
+  body.dark-theme {
+    --background-start: #2a3b4a;
+    --background-end: #1a2634;
+    --text-color: #e0e0e0;
+    --primary-color: #78a99e;
+    --secondary-color: #78a190;
+    --hover-color: #5d8c7b;
+    --light-accent: #2e4f42;
+    --border-color: #3a5a4a;
+  }
+  
+  .dark-theme form {
+    background-color: rgba(40, 50, 60, 0.8);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .dark-theme fieldset {
+    background-color: rgba(40, 55, 65, 0.7);
+  }
+  
+  .dark-theme input[type="text"], .dark-theme input[type="password"] {
+    background-color: rgba(50, 60, 70, 0.8);
+    border-color: var(--border-color);
+    color: #e0e0e0;
+  }
+  
+  .dark-theme p {
+    background-color: rgba(40, 50, 60, 0.8);
+  }
+  
+  .dark-theme table {
+    background-color: rgba(40, 50, 60, 0.8);
+  }
+  
+  .dark-theme th, .dark-theme td {
+    border-bottom: 1px solid #3a4a5a;
+  }
+  
+  .dark-theme tr:hover {
+    background-color: rgba(60, 70, 80, 0.8);
+  }
+  
+  .dark-theme .score-summary, .dark-theme .history, .dark-theme .leaderboard {
+    background-color: rgba(40, 50, 60, 0.8);
+  }
+  
+  /* Animation for fade-in elements */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.8s ease forwards;
+  }
+  
+  /* Theme Toggle Button */
+  .theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: var(--secondary-color);
+    color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    transition: all var(--transition-speed) ease;
+  }
+  
+  .theme-toggle:hover {
+    transform: scale(1.1);
+  }
+  
+  /* ====== CHERRY BLOSSOM STYLES - SPECIFIC PAGE STYLES ====== */
+  /* These styles will only be applied to the specified pages */
+  
+  /* Cherry Blossom Animations - Only apply on specific pages */
+  .cherry-blossom-enabled {
+    /* This class will be added by JavaScript only on specified pages */
+  }
+  
+  .cherry-blossom-enabled .cherry-blossom {
+    position: fixed;
+    top: -10%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  
+  @keyframes falling {
+    0% {
+      transform: translateY(-5%) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes sway {
+    0% { transform: translateX(0px); }
+    25% { transform: translateX(10px); }
+    50% { transform: translateX(-5px); }
+    75% { transform: translateX(8px); }
+    100% { transform: translateX(0px); }
+  }

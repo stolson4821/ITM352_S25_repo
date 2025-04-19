@@ -2,8 +2,8 @@
 <html>
 <head>
   <title>Question {{ number }} of {{ total }}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
+  <link rel="stylesheet" href="path/to/ghibli-style.css">
+  <!--<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> --></head>
 <body>
   <h2>Question {{ number }} of {{ total }}</h2>
   <form method="POST">
@@ -15,5 +15,6 @@
     {% endfor %}
     <button type="submit">Submit</button>
   </form>
+  <script src="path/to/cherry-blossom.js"></script>
 </body>
 </html>
