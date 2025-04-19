@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="path/to/ghibli-style.css">
-    <!--<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <title>Welcome</title>
 </head>
     <body>
@@ -12,6 +11,6 @@
         <p>We're glad to see you again!</p>
     {% endif %}
         <a href="{{ url_for('login') }}">Login to Start</a>
-        <script src="path/to/cherry-blossom.js"></script>
+    
     </body>
 </html>

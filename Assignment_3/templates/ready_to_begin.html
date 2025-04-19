@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="path/to/ghibli-style.css">
-    <!--<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> -->    <title>Ready?</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h2>Welcome, {{ user }}!</h2>
     <p>Are you ready to begin the quiz?</p>
     <a href="{{ url_for('quiz') }}">Start Quiz</a>
-    <script src="path/to/cherry-blossom.js"></script>
+    
 </body>
 </html>

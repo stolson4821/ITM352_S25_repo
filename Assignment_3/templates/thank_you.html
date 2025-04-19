@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="path/to/ghibli-style.css">
-    <!--<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> -->    <title>Thank You</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h2>Thanks for completing the quiz, {{ user }}!</h2>
@@ -72,6 +71,6 @@
     
     <a href="{{ url_for('select_difficulty') }}">Play Again</a>
     <a href="{{ url_for('index') }}">Return to Home</a>
-    <script src="path/to/cherry-blossom.js"></script>
+    
 </body>
 </html>
