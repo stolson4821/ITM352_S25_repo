@@ -339,9 +339,9 @@
   /* These styles will only be applied to the specified pages */
   
   /* Cherry Blossom Animations - Only apply on specific pages */
-  .cherry-blossom-enabled {
-    /* This class will be added by JavaScript only on specified pages */
-  }
+
+  /* This class will be added by JavaScript only on specified pages */
+
   
   .cherry-blossom-enabled .cherry-blossom {
     position: fixed;
