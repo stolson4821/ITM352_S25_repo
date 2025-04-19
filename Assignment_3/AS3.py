@@ -4,25 +4,28 @@ import random
 import time
 from datetime import datetime
 
+
+##Requirements 1 is found in the css and html files.
+##Requirement 7a. and 7b. are throughout the program.
+# Requirement 5b. Use flask to serve application. 
 app = Flask(__name__)
 app.secret_key = "ITM352"
 
 # Hardcoded user database
 USERS = {
     "port": "port123",
-    "Teachasst": "teachme123",
-    "port": "port123",
     "teachasst":"teachme123",
     "spencer": "spencer123",
     "visitor": "visit123"
 }
 
-# Load questions from JSON file at app startup
+# Requirement 2a. Load questions from JSON file at app startup
+#Decided to name it as all questions as it was easier to remember for indexing later on when applying difficulty levels.
 try:
     with open("questions.json") as f:
         ALL_QUESTIONS = json.load(f)
         
-    # Validate questions data structure
+    # Error Handling by Validating the questions data structure for when/if it is modified
     for i, q in enumerate(ALL_QUESTIONS):
         if "question" not in q or "choices" not in q or "answer" not in q:
             print(f"Warning: Question at index {i} has invalid format")
@@ -45,10 +48,13 @@ try:
 except (FileNotFoundError, json.JSONDecodeError):
     SCORES = {}
 
+#remembered from a previous lab.
 def save_scores():
     with open("scores.json", "w") as f:
         json.dump(SCORES, f)
 
+#Used AI to assist in generating how this woule appear based on the JSON that was created to track scores. 
+#The JSON was a very busy file to i used AI to assist in rendering it.
 def get_leaderboard():
     all_scores = []
     for username, scores in SCORES.items():
@@ -66,6 +72,7 @@ def get_leaderboard():
     sorted_scores = sorted(all_scores, key=lambda x: (x["percentage"], x["score"]), reverse=True)
     return sorted_scores[:5]  # Return top 5
 
+#Individual requirement is found within HTML for Index.
 @app.route("/")
 def index():
     # Check if user has visited before
@@ -94,6 +101,7 @@ def login():
             return render_template("login.html", error="Invalid credentials", leaderboard=leaderboard)
     return render_template("login.html", leaderboard=leaderboard)
 
+#Individual requirement 4 Difficulty levels here. Used Easy and Hard for simplicity. Scores are tracked for each type of quiz you have taken.
 @app.route("/select_difficulty")
 def select_difficulty():
     if "username" not in session:
@@ -134,10 +142,10 @@ def start_quiz(difficulty):
             "answer": correct_answer
         })
     
-    # Randomize question order
+    # Requirement 2b. Randomize question order
     random.shuffle(questions_copy)
     
-    # Randomize answer choices for each question
+    # Requirement 2c. continuedRandomize answer choices for each question
     for q in questions_copy:
         choices = q["choices"].copy()
         correct_answer = q["answer"]
@@ -228,6 +236,7 @@ def quiz():
     question = questions[index]
     return render_template("questions.html", question=question, number=index + 1, total=len(questions))
 
+#Dissplays use score and leaderboard 
 @app.route("/thank_you")
 def thank_you():
     if "username" not in session:
@@ -284,7 +293,8 @@ def thank_you():
                            leaderboard=leaderboard,
                            difficulty=difficulty)
 
-# RESTful API endpoints
+# Requirement 5b. RESTful API endpoints
+# Used AI to guid me how to do this but did not code this. Basically indexes the first five questions as easy and the last 5 q's as hard.
 @app.route("/api/questions", methods=["GET"])
 def api_questions():
     difficulty = request.args.get("difficulty", "easy")
@@ -296,6 +306,7 @@ def api_questions():
     
     return jsonify(questions)
 
+# Requirement 4b. API score tracking.
 @app.route("/api/scores", methods=["GET"])
 def api_scores():
     username = request.args.get("username")
@@ -304,10 +315,13 @@ def api_scores():
         return jsonify(user_scores)
     return jsonify(SCORES)
 
+# Requirement 6a. and 6b. completed both with a leaderboard. 
 @app.route("/api/leaderboard", methods=["GET"])
 def api_leaderboard():
     return jsonify(get_leaderboard())
 
+# Requirement 4a. save score to JSON
+# Used a previous lab as reference to make this work. 
 @app.route("/api/save_score", methods=["POST"])
 def api_save_score():
     data = request.get_json()
