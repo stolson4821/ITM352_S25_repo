@@ -1,8 +1,12 @@
 import os
+#import io
+#import base64
+#import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from flask import Flask, request, jsonify, render_template
-
-from analysis_functions import run_analysis, get_columns_info
+#import seaborn as sns
+from analysis_functions import run_analysis, select_columns
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -25,7 +29,7 @@ def upload():
     try:
         df = pd.read_csv(file)
         cached_df = df
-        col_info = get_columns_info(df)
+        col_info = select_columns(df)
         return jsonify(success=True, message='File uploaded successfully', data=col_info)
     except Exception as e:
         return jsonify(success=False, message=str(e))
