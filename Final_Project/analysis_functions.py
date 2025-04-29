@@ -26,6 +26,10 @@ import statsmodels.api as sm
 from statsmodels.formula.api import ols
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
+app = Flask(__name__)
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 class StatisticalAnalysisTool:
     def __init__(self):
         self.df = None
@@ -1520,71 +1524,6 @@ class StatisticalAnalysisTool:
                     print("Invalid input. Please enter a number.")
                 
                 input("\nPress Enter to return to the main menu...")
-
-def select_columns(self, message="Select columns:", numeric_only=False, 
-                      categorical_only=False, min_selections=1, max_selections=None):
-        """
-        Prompt user to select columns from the dataframe
-        
-        Args:
-            message: The prompt message
-            numeric_only: If True, only show numeric columns
-            categorical_only: If True, only show categorical columns
-            min_selections: Minimum number of columns to select
-            max_selections: Maximum number of columns to select
-            
-        Returns:
-            list: Selected column names
-        """
-        available_columns = []
-        
-        if numeric_only:
-            available_columns = self.numeric_columns
-        elif categorical_only:
-            available_columns = self.categorical_columns
-        else:
-            available_columns = self.df.columns.tolist()
-            
-        if not available_columns:
-            print("No suitable columns available for selection.")
-            return []
-            
-        # If there are predefined selected columns, use those that are available
-        if self.selected_columns:
-            filtered_columns = [col for col in self.selected_columns if col in available_columns]
-            if filtered_columns:
-                use_selected = input(f"Use previously selected columns ({', '.join(filtered_columns)})? (y/n): ")
-                if use_selected.lower() == 'y':
-                    return filtered_columns
-        
-        print(f"\n{message}")
-        for i, col in enumerate(available_columns, 1):
-            dtype = self.df[col].dtype
-            print(f"{i}. {col} ({dtype})")
-            
-        while True:
-            selection = input(f"\nEnter column numbers (comma-separated, {min_selections}-{max_selections or 'all'}): ")
-            try:
-                # Handle empty input
-                if not selection.strip():
-                    print(f"Please select at least {min_selections} column(s).")
-                    continue
-                    
-                indices = [int(x.strip()) - 1 for x in selection.split(',')]
-                selected = [available_columns[i] for i in indices if 0 <= i < len(available_columns)]
-                
-                if len(selected) < min_selections:
-                    print(f"Please select at least {min_selections} column(s).")
-                    continue
-                    
-                if max_selections and len(selected) > max_selections:
-                    print(f"Please select at most {max_selections} column(s).")
-                    continue
-                    
-                return selected
-                
-            except (ValueError, IndexError):
-                print("Invalid selection. Please enter valid column numbers.")
        
 def run_analysis(df, params):
     df = df.dropna()
