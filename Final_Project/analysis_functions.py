@@ -1,23 +1,32 @@
+# Standard Library
 import os
 import sys
-import pandas as pd
+import io
+import base64
+import tkinter as tk
+from tkinter import filedialog
+# Data Handling
 import numpy as np
+import pandas as pd
+# Visualization
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+# Scikit-learn
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.metrics import classification_report, confusion_matrix, r2_score
+# Scipy
 from scipy import stats
+from scipy.stats import chi2_contingency
+# Statsmodels
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.metrics import classification_report, confusion_matrix, r2_score
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import adfuller
-import tkinter as tk
-from tkinter import filedialog
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 class StatisticalAnalysisTool:
     def __init__(self):
@@ -235,7 +244,7 @@ class StatisticalAnalysisTool:
         
         # Create scatter matrix
         plt.figure(figsize=(12, 10))
-        sns.set(style="ticks")
+        sns.set_theme(style="ticks")
         
         scatter_plot = sns.pairplot(self.df[columns], diag_kind="kde", markers="o", 
                                    plot_kws={'alpha': 0.6, 's': 80, 'edgecolor': 'k'},
@@ -1513,7 +1522,115 @@ class StatisticalAnalysisTool:
                     print("Invalid input. Please enter a number.")
                 
                 input("\nPress Enter to return to the main menu...")
+        
+def run_analysis(df, params):
+    df = df.dropna()
+    result = {}
 
+    atype = params['analysis_type']
+    cols = params['columns']
+    dep = params['dependent_var']
+    degree = params.get('degree', 2)
+    var1 = params.get('var1')
+    var2 = params.get('var2')
+
+    if atype == 'descriptive_statistics':
+        result['statistics'] = df[cols].describe().to_dict()
+
+    elif atype == 'scatter_matrix':
+        sns.set_theme(style="ticks")
+        fig = sns.pairplot(df[cols])
+        result['scatter_matrix'] = [{'title': 'Scatter Matrix', 'image': df_to_base64(fig.fig)}]
+
+    elif atype in ['linear_regression', 'multiple_regression']:
+        X = df[cols]
+        y = df[dep]
+        model = LinearRegression().fit(X, y)
+        y_pred = model.predict(X)
+        fig, ax = plt.subplots()
+        ax.scatter(y, y_pred)
+        ax.set_xlabel('Actual')
+        ax.set_ylabel('Predicted')
+        ax.set_title('Linear Regression' if atype == 'linear_regression' else 'Multiple Regression')
+        result[atype] = [{'title': ax.get_title(), 'image': df_to_base64(fig)}]
+
+    elif atype == 'polynomial_regression':
+        X = df[cols]
+        y = df[dep]
+        poly = PolynomialFeatures(degree=degree)
+        X_poly = poly.fit_transform(X)
+        model = LinearRegression().fit(X_poly, y)
+        y_pred = model.predict(X_poly)
+        fig, ax = plt.subplots()
+        ax.scatter(y, y_pred)
+        ax.set_xlabel('Actual')
+        ax.set_ylabel('Predicted')
+        ax.set_title(f'Polynomial Regression (Degree {degree})')
+        result[atype] = [{'title': ax.get_title(), 'image': df_to_base64(fig)}]
+
+    elif atype == 'logistic_regression':
+        X = df[cols]
+        y = df[dep]
+        model = LogisticRegression(max_iter=200).fit(X, y)
+        y_pred = model.predict(X)
+        report = classification_report(y, y_pred, output_dict=True)
+        result[atype] = report
+
+    elif atype == 'anova':
+        model = stats.f_oneway(*(df.groupby(dep)[col].values for col in cols))
+        result[atype] = {'F-statistic': model.statistic, 'p-value': model.pvalue}
+
+    elif atype == 'chi_square':
+        contingency = pd.crosstab(df[var1], df[var2])
+        chi2, p, dof, expected = chi2_contingency(contingency)
+        result[atype] = {'chi2': chi2, 'p': p, 'dof': dof, 'expected_freq': expected.tolist()}
+
+    elif atype == 'correlation':
+        corr = df[cols].corr()
+        fig, ax = plt.subplots(figsize=(10, 8))
+        sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax)
+        result[atype] = [{'title': 'Correlation Heatmap', 'image': df_to_base64(fig)}]
+
+    elif atype == 'pca':
+        X = df[cols]
+        X_scaled = StandardScaler().fit_transform(X)
+        pca = PCA(n_components=2)
+        components = pca.fit_transform(X_scaled)
+        fig, ax = plt.subplots()
+        ax.scatter(components[:, 0], components[:, 1])
+        ax.set_title('PCA: First 2 Components')
+        result[atype] = [{'title': ax.get_title(), 'image': df_to_base64(fig)}]
+
+    elif atype == 'clustering':
+        X = df[cols]
+        kmeans = KMeans(n_clusters=3, n_init='auto')
+        clusters = kmeans.fit_predict(X)
+        fig, ax = plt.subplots()
+        ax.scatter(X.iloc[:, 0], X.iloc[:, 1], c=clusters)
+        ax.set_title('KMeans Clustering')
+        result[atype] = [{'title': ax.get_title(), 'image': df_to_base64(fig)}]
+
+    elif atype == 'residual_diagnostics':
+        X = df[cols]
+        y = df[dep]
+        model = LinearRegression().fit(X, y)
+        residuals = y - model.predict(X)
+        fig, ax = plt.subplots()
+        sns.histplot(residuals, kde=True, ax=ax)
+        ax.set_title('Residuals Distribution')
+        result[atype] = [{'title': ax.get_title(), 'image': df_to_base64(fig)}]
+
+    else:
+        raise ValueError("Unknown analysis type")
+
+    return result
+
+def df_to_base64(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    plt.close(fig)
+    buf.seek(0)
+    return base64.b64encode(buf.read()).decode('utf-8')
 #Run the APP#
 if __name__ == "__main__":
     app = StatisticalAnalysisTool()
