@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistical Analysis Tool</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .analysis-container {
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .plot-container img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Statistical Analysis Tool</h1>
+
+        <!-- File Upload Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Upload Data File</h5>
+            </div>
+            <div class="card-body">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label">Select CSV File</label>
+                        <input class="form-control" type="file" id="csvFile" name="file" accept=".csv">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+                <div id="uploadStatus" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Analysis Menu -->
+        <div id="analysisMenu" class="card mb-4" style="display: none;">
+            <div class="card-header">
+                <h5>Analysis Options</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="list-group">
+                            <button class="list-group-item list-group-item-action" data-analysis="descriptive_statistics">1. View Descriptive Statistics</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="scatter_matrix">2. Scatter Matrix</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="linear_regression">3. Linear Regression (Single)</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="multiple_regression">4. Multiple Linear Regression</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="polynomial_regression">5. Polynomial Regression</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="logistic_regression">6. Logistic Regression</button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="list-group">
+                            <button class="list-group-item list-group-item-action" data-analysis="anova">7. ANOVA</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="chi_square">8. Chi-Square Test</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="correlation">9. Correlation Heatmap</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="pca">10. PCA Analysis</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="clustering">11. Clustering (KMeans)</button>
+                            <button class="list-group-item list-group-item-action" data-analysis="residual_diagnostics">12. Residual Diagnostics</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column Selection Section -->
+        <div id="columnSelection" class="card mb-4" style="display: none;">
+            <div class="card-header">
+                <h5 id="selectionTitle">Select Columns</h5>
+            </div>
+            <div class="card-body">
+                <form id="columnsForm">
+                    <div class="mb-3">
+                        <label class="form-label">Available Columns</label>
+                        <div id="columnsContainer" class="row"></div>
+                    </div>
+                    <div id="additionalOptions"></div>
+                    <button type="submit" class="btn btn-primary">Run Analysis</button>
+                    <button type="button" class="btn btn-secondary" id="backToMenu">Back to Menu</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Processing analysis...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsContainer" class="card mb-4" style="display: none;">
+            <div class="card-header">
+                <h5 id="resultsTitle">Analysis Results</h5>
+            </div>
+            <div class="card-body">
+                <div id="resultsContent"></div>
+                <button type="button" class="btn btn-primary mt-3" id="newAnalysis">New Analysis</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Upload CSV
+            $('#uploadForm').on('submit', function(e) {
+                e.preventDefault();
+                let formData = new FormData(this);
+                $.ajax({
+                    url: '/upload',
+                    method: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: () => $('#uploadStatus').text('Uploading...'),
+                    success: function(response) {
+                        if (response.success) {
+                            $('#uploadStatus').html('<div class="alert alert-success">' + response.message + '</div>');
+                            $('#analysisMenu').show();
+                            populateColumns(response.data);
+                        } else {
+                            $('#uploadStatus').html('<div class="alert alert-danger">' + response.message + '</div>');
+                        }
+                    }
+                });
+            });
+        
+            function populateColumns(data) {
+                const container = $('#columnsContainer').empty();
+                const allCols = [...data.numeric_columns, ...data.categorical_columns];
+                allCols.forEach(col => {
+                    container.append(`<div class="form-check col-md-4">
+                        <input class="form-check-input column-check" type="checkbox" value="${col}" id="col-${col}">
+                        <label class="form-check-label" for="col-${col}">${col}</label>
+                    </div>`);
+                });
+            }
+        
+            // Show column selection
+            $('[data-analysis]').on('click', function() {
+                const analysis = $(this).data('analysis');
+                $('#columnSelection').show();
+                $('#analysisMenu').hide();
+                $('#columnsForm').data('analysis', analysis);
+                $('#selectionTitle').text('Select Columns for ' + $(this).text());
+        
+                const additional = $('#additionalOptions').empty();
+                if (['linear_regression', 'multiple_regression', 'polynomial_regression', 'logistic_regression', 'anova', 'residual_diagnostics'].includes(analysis)) {
+                    additional.append(`<label class="form-label mt-3">Dependent/Target Variable</label>
+                        <input type="text" class="form-control" name="dependent_var" required>`);
+                }
+                if (analysis === 'polynomial_regression') {
+                    additional.append(`<label class="form-label mt-3">Polynomial Degree</label>
+                        <input type="number" class="form-control" name="degree" value="2" min="1">`);
+                }
+                if (analysis === 'chi_square') {
+                    additional.append(`<label class="form-label mt-3">Variable 1</label>
+                        <input type="text" class="form-control" name="var1" required>
+                        <label class="form-label mt-3">Variable 2</label>
+                        <input type="text" class="form-control" name="var2" required>`);
+                }
+            });
+        
+            // Submit analysis
+            $('#columnsForm').on('submit', function(e) {
+                e.preventDefault();
+                $('#loading').show();
+                $('#resultsContainer').hide();
+        
+                const analysis = $(this).data('analysis');
+                const selectedCols = $('.column-check:checked').map(function() { return this.value; }).get();
+                const formData = new FormData();
+                formData.append('analysis_type', analysis);
+                selectedCols.forEach(col => formData.append('columns', col));
+        
+                // Add conditional form fields
+                $(this).find('input').each(function() {
+                    if ($(this).attr('name')) {
+                        formData.append($(this).attr('name'), $(this).val());
+                    }
+                });
+        
+                $.ajax({
+                    url: '/analyze',
+                    method: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        $('#loading').hide();
+                        if (response.success) {
+                            renderResults(response.result);
+                        } else {
+                            $('#resultsContent').html('<div class="alert alert-danger">' + response.message + '</div>');
+                            $('#resultsContainer').show();
+                        }
+                    }
+                });
+            });
+        
+            $('#backToMenu, #newAnalysis').on('click', function() {
+                $('#columnSelection').hide();
+                $('#resultsContainer').hide();
+                $('#analysisMenu').show();
+            });
+        
+            function renderResults(result) {
+                const container = $('#resultsContent').empty();
+                for (let key in result) {
+                    if (Array.isArray(result[key])) {
+                        result[key].forEach(item => {
+                            if (item.image) {
+                                container.append(`<h6>${item.title || item.column}</h6><img src="data:image/png;base64,${item.image}" class="img-fluid mb-3"/>`);
+                            }
+                        });
+                    } else if (typeof result[key] === 'string' && result[key].startsWith('iVBOR')) {
+                        container.append(`<img src="data:image/png;base64,${result[key]}" class="img-fluid mb-3"/>`);
+                    } else if (typeof result[key] === 'object') {
+                        container.append(`<pre>${JSON.stringify(result[key], null, 2)}</pre>`);
+                    } else {
+                        container.append(`<p><strong>${key}:</strong> ${result[key]}</p>`);
+                    }
+                }
+                $('#resultsContainer').show();
+            }
+        });
+        </script>
+</body>
+</html>
