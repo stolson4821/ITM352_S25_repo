@@ -18,6 +18,38 @@
             max-width: 100%;
             height: auto;
         }
+        .column-check.numeric {
+            background-color: rgba(210, 240, 255, 0.2);
+        }
+        .column-check.categorical {
+            background-color: rgba(255, 240, 210, 0.2);
+        }
+        #columnsContainer label {
+            display: inline-block;
+            padding: 3px 5px;
+            border-radius: 4px;
+        }
+        .validation-message {
+            display: none;
+            margin-top: 10px;
+        }
+        .result-image {
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        .table-responsive {
+            margin-bottom: 20px;
+        }
+        .column-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        .column-group h6 {
+            margin-bottom: 10px;
+            color: #555;
+        }
     </style>
 </head>
 <body>
@@ -76,14 +108,24 @@
         <div id="columnSelection" class="card mb-4" style="display: none;">
             <div class="card-header">
                 <h5 id="selectionTitle">Select Columns</h5>
+                <small id="analysisDescription" class="text-muted"></small>
             </div>
             <div class="card-body">
                 <form id="columnsForm">
-                    <div class="mb-3">
-                        <label class="form-label">Available Columns</label>
-                        <div id="columnsContainer" class="row"></div>
+                    <div id="columnsContainer" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-6 column-group" id="numericColumnsGroup">
+                                <h6>Numeric Columns</h6>
+                                <div id="numericColumns" class="row"></div>
+                            </div>
+                            <div class="col-md-6 column-group" id="categoricalColumnsGroup">
+                                <h6>Categorical Columns</h6>
+                                <div id="categoricalColumns" class="row"></div>
+                            </div>
+                        </div>
                     </div>
                     <div id="additionalOptions"></div>
+                    <div id="validationMessage" class="alert alert-warning validation-message"></div>
                     <button type="submit" class="btn btn-primary">Run Analysis</button>
                     <button type="button" class="btn btn-secondary" id="backToMenu">Back to Menu</button>
                 </form>
@@ -114,6 +156,128 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Store column metadata
+            let columnData = {
+                numeric: [],
+                categorical: []
+            };
+            
+            // Analysis requirements
+            const analysisRequirements = {
+                descriptive_statistics: {
+                    description: "Analyze key statistical measures of numeric data.",
+                    requiredNumeric: 1,
+                    requiredCategorical: 0,
+                    dependent: false,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric;
+                    }
+                },
+                scatter_matrix: {
+                    description: "Visualize relationships between multiple numeric variables.",
+                    requiredNumeric: 2,
+                    requiredCategorical: 0,
+                    dependent: false,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric;
+                    }
+                },
+                linear_regression: {
+                    description: "Model the relationship between one independent and one dependent variable.",
+                    requiredNumeric: 2,
+                    requiredCategorical: 0,
+                    dependent: true,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric && $('#dependent_var').val() !== '';
+                    }
+                },
+                multiple_regression: {
+                    description: "Model the relationship between multiple independent variables and one dependent variable.",
+                    requiredNumeric: 2,
+                    requiredCategorical: 0,
+                    dependent: true,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric && $('#dependent_var').val() !== '';
+                    }
+                },
+                polynomial_regression: {
+                    description: "Model non-linear relationships using polynomial terms.",
+                    requiredNumeric: 2,
+                    requiredCategorical: 0,
+                    dependent: true,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric && $('#dependent_var').val() !== '';
+                    }
+                },
+                logistic_regression: {
+                    description: "Model binary outcomes based on predictor variables.",
+                    requiredNumeric: 1,
+                    requiredCategorical: 0,
+                    dependent: true,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric && $('#dependent_var').val() !== '';
+                    }
+                },
+                anova: {
+                    description: "Compare means across groups to detect significant differences.",
+                    requiredNumeric: 1,
+                    requiredCategorical: 1,
+                    dependent: true,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric && 
+                               (selected.categorical.length >= this.requiredCategorical || selected.numeric.length >= 2) && 
+                               $('#dependent_var').val() !== '';
+                    }
+                },
+                chi_square: {
+                    description: "Test for association between categorical variables.",
+                    requiredNumeric: 0,
+                    requiredCategorical: 2,
+                    dependent: false,
+                    validate: function(selected) {
+                        return (selected.categorical.length >= this.requiredCategorical || 
+                                (selected.categorical.length >= 1 && selected.numeric.length >= 1)) && 
+                               $('#var1').val() !== '' && $('#var2').val() !== '' && $('#var1').val() !== $('#var2').val();
+                    }
+                },
+                correlation: {
+                    description: "Measure the strength and direction of relationships between variables.",
+                    requiredNumeric: 2,
+                    requiredCategorical: 0,
+                    dependent: false,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric;
+                    }
+                },
+                pca: {
+                    description: "Reduce dimensionality while preserving variance in the data.",
+                    requiredNumeric: 2,
+                    requiredCategorical: 0,
+                    dependent: false,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric;
+                    }
+                },
+                clustering: {
+                    description: "Group similar data points into clusters.",
+                    requiredNumeric: 2,
+                    requiredCategorical: 0,
+                    dependent: false,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric;
+                    }
+                },
+                residual_diagnostics: {
+                    description: "Analyze residuals to validate regression model assumptions.",
+                    requiredNumeric: 2,
+                    requiredCategorical: 0,
+                    dependent: true,
+                    validate: function(selected) {
+                        return selected.numeric.length >= this.requiredNumeric && $('#dependent_var').val() !== '';
+                    }
+                }
+            };
+            
             // Upload CSV
             $('#uploadForm').on('submit', function(e) {
                 e.preventDefault();
@@ -129,7 +293,10 @@
                         if (response.success) {
                             $('#uploadStatus').html('<div class="alert alert-success">' + response.message + '</div>');
                             $('#analysisMenu').show();
-                            populateColumns(response.data);
+                            
+                            // Store column metadata
+                            columnData.numeric = response.data.numeric_columns;
+                            columnData.categorical = response.data.categorical_columns;
                         } else {
                             $('#uploadStatus').html('<div class="alert alert-danger">' + response.message + '</div>');
                         }
@@ -137,61 +304,189 @@
                 });
             });
         
-            function populateColumns(data) {
-                const container = $('#columnsContainer').empty();
-                const allCols = [...data.numeric_columns, ...data.categorical_columns];
-                allCols.forEach(col => {
-                    container.append(`<div class="form-check col-md-4">
-                        <input class="form-check-input column-check" type="checkbox" value="${col}" id="col-${col}">
-                        <label class="form-check-label" for="col-${col}">${col}</label>
-                    </div>`);
+            function populateColumns() {
+                // Clear containers
+                $('#numericColumns').empty();
+                $('#categoricalColumns').empty();
+                
+                // Populate numeric columns
+                columnData.numeric.forEach(col => {
+                    $('#numericColumns').append(`
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input column-check numeric" type="checkbox" data-type="numeric" value="${col}" id="col-${col}">
+                                <label class="form-check-label numeric" for="col-${col}">${col}</label>
+                            </div>
+                        </div>
+                    `);
                 });
+                
+                // Populate categorical columns
+                columnData.categorical.forEach(col => {
+                    $('#categoricalColumns').append(`
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input column-check categorical" type="checkbox" data-type="categorical" value="${col}" id="col-${col}">
+                                <label class="form-check-label categorical" for="col-${col}">${col}</label>
+                            </div>
+                        </div>
+                    `);
+                });
+                
+                // Hide group if empty
+                if (columnData.numeric.length === 0) {
+                    $('#numericColumnsGroup').hide();
+                } else {
+                    $('#numericColumnsGroup').show();
+                }
+                
+                if (columnData.categorical.length === 0) {
+                    $('#categoricalColumnsGroup').hide();
+                } else {
+                    $('#categoricalColumnsGroup').show();
+                }
             }
         
             // Show column selection
             $('[data-analysis]').on('click', function() {
                 const analysis = $(this).data('analysis');
+                const requirements = analysisRequirements[analysis];
+                
                 $('#columnSelection').show();
                 $('#analysisMenu').hide();
                 $('#columnsForm').data('analysis', analysis);
                 $('#selectionTitle').text('Select Columns for ' + $(this).text());
-        
+                $('#analysisDescription').text(requirements.description);
+                
+                // Populate column lists
+                populateColumns();
+                
+                // Reset validation message
+                $('#validationMessage').hide();
+                
                 const additional = $('#additionalOptions').empty();
-                if (['linear_regression', 'multiple_regression', 'polynomial_regression', 'logistic_regression', 'anova', 'residual_diagnostics'].includes(analysis)) {
-                    additional.append(`<label class="form-label mt-3">Dependent/Target Variable</label>
-                        <input type="text" class="form-control" name="dependent_var" required>`);
+                
+                // Add appropriate additional options
+                if (requirements.dependent) {
+                    let options = '';
+                    if (analysis === 'logistic_regression') {
+                        // For logistic regression, show all columns as potential dependent
+                        options = [...columnData.numeric, ...columnData.categorical]
+                            .map(col => `<option value="${col}">${col}</option>`)
+                            .join('');
+                    } else if (analysis === 'anova') {
+                        // For ANOVA, dependent var is numeric
+                        options = columnData.numeric
+                            .map(col => `<option value="${col}">${col}</option>`)
+                            .join('');
+                    } else {
+                        // For other regressions, dependent var is numeric
+                        options = columnData.numeric
+                            .map(col => `<option value="${col}">${col}</option>`)
+                            .join('');
+                    }
+                    
+                    additional.append(`
+                        <div class="mb-3">
+                            <label class="form-label">Dependent/Target Variable</label>
+                            <select class="form-control" id="dependent_var" name="dependent_var" required>
+                                <option value="">-- Select Dependent Variable --</option>
+                                ${options}
+                            </select>
+                            <small class="form-text text-muted">The variable you want to predict or explain.</small>
+                        </div>
+                    `);
                 }
+                
                 if (analysis === 'polynomial_regression') {
-                    additional.append(`<label class="form-label mt-3">Polynomial Degree</label>
-                        <input type="number" class="form-control" name="degree" value="2" min="1">`);
+                    additional.append(`
+                        <div class="mb-3">
+                            <label class="form-label">Polynomial Degree</label>
+                            <input type="number" class="form-control" id="degree" name="degree" value="2" min="1" max="10">
+                            <small class="form-text text-muted">Higher values model more complex relationships (2=quadratic, 3=cubic, etc.).</small>
+                        </div>
+                    `);
                 }
+                
                 if (analysis === 'chi_square') {
-                    additional.append(`<label class="form-label mt-3">Variable 1</label>
-                        <input type="text" class="form-control" name="var1" required>
-                        <label class="form-label mt-3">Variable 2</label>
-                        <input type="text" class="form-control" name="var2" required>`);
+                    let options = '';
+                    // For chi-square, show all columns for both vars
+                    options = [...columnData.numeric, ...columnData.categorical]
+                        .map(col => `<option value="${col}">${col}</option>`)
+                        .join('');
+                    
+                    additional.append(`
+                        <div class="mb-3">
+                            <label class="form-label">Variable 1</label>
+                            <select class="form-control" id="var1" name="var1" required>
+                                <option value="">-- Select First Variable --</option>
+                                ${options}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Variable 2</label>
+                            <select class="form-control" id="var2" name="var2" required>
+                                <option value="">-- Select Second Variable --</option>
+                                ${options}
+                            </select>
+                        </div>
+                    `);
+                }
+                
+                // Add validation message
+                if (requirements.requiredNumeric > 0 || requirements.requiredCategorical > 0) {
+                    let validationText = 'This analysis requires: ';
+                    if (requirements.requiredNumeric > 0) {
+                        validationText += `at least ${requirements.requiredNumeric} numeric column(s)`;
+                        if (requirements.requiredCategorical > 0) {
+                            validationText += ' and ';
+                        }
+                    }
+                    if (requirements.requiredCategorical > 0) {
+                        validationText += `at least ${requirements.requiredCategorical} categorical column(s)`;
+                    }
+                    
+                    $('#validationMessage').text(validationText).show();
                 }
             });
         
-            // Submit analysis
+            // Submit analysis with validation
             $('#columnsForm').on('submit', function(e) {
                 e.preventDefault();
+                
+                const analysis = $(this).data('analysis');
+                const requirements = analysisRequirements[analysis];
+                
+                // Count selected columns by type
+                const selected = {
+                    numeric: $('.column-check.numeric:checked').map(function() { return this.value; }).get(),
+                    categorical: $('.column-check.categorical:checked').map(function() { return this.value; }).get()
+                };
+                
+                // Validate based on requirements
+                if (!requirements.validate(selected)) {
+                    $('#validationMessage').text('Please check the column requirements for this analysis.').show();
+                    return false;
+                }
+                
                 $('#loading').show();
                 $('#resultsContainer').hide();
-        
-                const analysis = $(this).data('analysis');
-                const selectedCols = $('.column-check:checked').map(function() { return this.value; }).get();
+                
                 const formData = new FormData();
                 formData.append('analysis_type', analysis);
-                selectedCols.forEach(col => formData.append('columns', col));
-        
+                
+                // Add all selected columns
+                [...selected.numeric, ...selected.categorical].forEach(col => {
+                    formData.append('columns', col);
+                });
+                
                 // Add conditional form fields
-                $(this).find('input').each(function() {
+                $(this).find('select, input').each(function() {
                     if ($(this).attr('name')) {
                         formData.append($(this).attr('name'), $(this).val());
                     }
                 });
-        
+                
                 $.ajax({
                     url: '/analyze',
                     method: 'POST',
@@ -201,41 +496,85 @@
                     success: function(response) {
                         $('#loading').hide();
                         if (response.success) {
-                            renderResults(response.result);
+                            renderResults(analysis, response.result);
                         } else {
                             $('#resultsContent').html('<div class="alert alert-danger">' + response.message + '</div>');
                             $('#resultsContainer').show();
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        $('#loading').hide();
+                        $('#resultsContent').html('<div class="alert alert-danger">An error occurred: ' + error + '</div>');
+                        $('#resultsContainer').show();
                     }
                 });
             });
-        
+            
             $('#backToMenu, #newAnalysis').on('click', function() {
                 $('#columnSelection').hide();
                 $('#resultsContainer').hide();
                 $('#analysisMenu').show();
             });
-        
-            function renderResults(result) {
+            
+            function renderResults(analysisType, result) {
                 const container = $('#resultsContent').empty();
+                $('#resultsTitle').text(analysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ' Results');
+                
+                // Handle visualization first if it exists
+                if (result.visualization) {
+                    container.append(`<img src="data:image/png;base64,${result.visualization}" class="result-image img-fluid mb-4"/>`);
+                }
+                
+                // Handle HTML tables
                 for (let key in result) {
-                    if (Array.isArray(result[key])) {
-                        result[key].forEach(item => {
-                            if (item.image) {
-                                container.append(`<h6>${item.title || item.column}</h6><img src="data:image/png;base64,${item.image}" class="img-fluid mb-3"/>`);
-                            }
-                        });
-                    } else if (typeof result[key] === 'string' && result[key].startsWith('iVBOR')) {
-                        container.append(`<img src="data:image/png;base64,${result[key]}" class="img-fluid mb-3"/>`);
-                    } else if (typeof result[key] === 'object') {
-                        container.append(`<pre>${JSON.stringify(result[key], null, 2)}</pre>`);
-                    } else {
-                        container.append(`<p><strong>${key}:</strong> ${result[key]}</p>`);
+                    if (key.includes('_html')) {
+                        container.append(`
+                            <div class="mb-4">
+                                <h5>${key.replace('_html', '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h5>
+                                <div class="table-responsive">${result[key]}</div>
+                            </div>
+                        `);
                     }
                 }
+                
+                // Handle other result types
+                const skipKeys = ['visualization', ...Object.keys(result).filter(k => k.includes('_html'))];
+                
+                // Group remaining results
+                const remainingResults = Object.keys(result)
+                    .filter(key => !skipKeys.includes(key))
+                    .map(key => {
+                        let value = result[key];
+                        let formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        
+                        // Format arrays or objects
+                        if (Array.isArray(value)) {
+                            return `<tr><th>${formattedKey}:</th><td><ul>${value.map(v => `<li>${v}</li>`).join('')}</ul></td></tr>`;
+                        } else if (typeof value === 'object') {
+                            return `<tr><th>${formattedKey}:</th><td><pre>${JSON.stringify(value, null, 2)}</pre></td></tr>`;
+                        } else {
+                            return `<tr><th>${formattedKey}:</th><td>${value}</td></tr>`;
+                        }
+                    });
+                
+                if (remainingResults.length > 0) {
+                    container.append(`
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Results Summary</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered">
+                                    <tbody>${remainingResults.join('')}</tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `);
+                }
+                
                 $('#resultsContainer').show();
             }
         });
-        </script>
+    </script>
 </body>
 </html>

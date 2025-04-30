@@ -5,6 +5,7 @@ import io
 import base64
 import tkinter as tk
 from tkinter import filedialog
+from flask import Flask
 # Data Handling
 import numpy as np
 import pandas as pd
@@ -26,9 +27,6 @@ import statsmodels.api as sm
 from statsmodels.formula.api import ols
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
-app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 class StatisticalAnalysisTool:
     def __init__(self):
@@ -1335,7 +1333,7 @@ class StatisticalAnalysisTool:
     def residual_diagnostics(self):
         """Perform residual diagnostics on a regression model"""
         print("\n--- Residual Diagnostics ---")
-        y_pred = model.predict(X)
+        
         # Check if there are enough numeric columns
         if len(self.numeric_columns) < 2:
             print("Residual diagnostics requires at least 2 numeric columns.")
@@ -1343,8 +1341,8 @@ class StatisticalAnalysisTool:
             
         # Select dependent variable
         y_col = self.select_columns(message="Select dependent variable (Y):", 
-                                   numeric_only=True, min_selections=1, max_selections=1)[0]
-                                   
+                                numeric_only=True, min_selections=1, max_selections=1)[0]
+                                
         # Select independent variables
         x_cols = self.select_columns(message="Select independent variables (X):", 
                                     numeric_only=True, min_selections=1)
@@ -1375,8 +1373,9 @@ class StatisticalAnalysisTool:
         print("\nRegression Model Summary:")
         print(model.summary())
         
-        # Calculate predictions and residuals
-        predictions = model.predict(X)
+        # Calculate predictions and residuals - THIS PART WAS FIXED
+        # Now we're defining y_pred AFTER the model is created
+        y_pred = model.predict(X)
         residuals = model.resid
         standardized_residuals = model.get_influence().resid_studentized_internal
         
@@ -1633,7 +1632,3 @@ def df_to_base64(fig):
     plt.close(fig)
     buf.seek(0)
     return base64.b64encode(buf.read()).decode('utf-8')
-#Run the APP#
-if __name__ == "__main__":
-    app = StatisticalAnalysisTool()
-app.start()
