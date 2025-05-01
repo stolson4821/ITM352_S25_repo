@@ -104,6 +104,9 @@
             background: #198754;
             color: white;
         }
+        .dependent-option {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -160,7 +163,7 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="linear_regression">
                             <div class="card-body">
-                                <h5 class="card-title">Linear Regression</h5>
+                                <h5 class="card-title">Linear Regression (Single)</h5>
                                 <p class="card-text">Model the relationship between variables.</p>
                             </div>
                         </div>
@@ -319,8 +322,47 @@
                             description: "Select one or more numeric variables to analyze"
                         }
                     ],
+                    options: [
+                        {
+                            id: "filter_rows",
+                            label: "Filter by Row Range",
+                            type: "checkbox",
+                            default: false,
+                            description: "Limit analysis to a specific range of rows"
+                        },
+                        {
+                            id: "start_row",
+                            label: "Start Row",
+                            type: "number",
+                            min: 0,
+                            default: 0,
+                            parentControl: "filter_rows",
+                            description: "Starting row index (inclusive)"
+                        },
+                        {
+                            id: "end_row",
+                            label: "End Row",
+                            type: "number",
+                            min: 1,
+                            default: 100,
+                            parentControl: "filter_rows",
+                            description: "Ending row index (exclusive)"
+                        }
+                    ],
                     validate: function(selected) {
-                        return selected.numeric_vars && selected.numeric_vars.length >= 1;
+                        let isValid = selected.numeric_vars && selected.numeric_vars.length >= 1;
+                        
+                        if (isValid && selected.filter_rows) {
+                            const startRow = parseInt(selected.start_row || 0);
+                            const endRow = parseInt(selected.end_row || 0);
+                            
+                            if (endRow <= startRow) {
+                                $('#validationMessage').text('End row must be greater than start row').show();
+                                return false;
+                            }
+                        }
+                        
+                        return isValid;
                     }
                 },
                 scatter_matrix: {
@@ -358,7 +400,14 @@
                         }
                     ],
                     validate: function(selected) {
-                        return selected.dependent_var && selected.independent_var;
+                        let isValid = selected.dependent_var && selected.independent_var;
+                        
+                        if (isValid && selected.dependent_var === selected.independent_var) {
+                            $('#validationMessage').text('The dependent variable cannot also be an independent variable').show();
+                            return false;
+                        }
+                        
+                        return isValid;
                     }
                 },
                 multiple_regression: {
@@ -376,8 +425,8 @@
                             label: "Independent Variables (X)",
                             type: "numeric",
                             multiple: true,
-                            min: 2,
-                            description: "The predictor variables"
+                            min: 1,
+                            description: "The predictor variables (at least 1)"
                         }
                     ],
                     options: [
@@ -385,13 +434,21 @@
                             id: "include_diagnostics",
                             label: "Include Diagnostics",
                             type: "checkbox",
+                            default: false,
                             description: "Include detailed model diagnostics in results"
                         }
                     ],
                     validate: function(selected) {
-                        return selected.dependent_var && 
+                        let isValid = selected.dependent_var && 
                                selected.independent_vars && 
-                               selected.independent_vars.length >= 2;
+                               selected.independent_vars.length >= 1;
+                        
+                        if (isValid && selected.independent_vars.includes(selected.dependent_var)) {
+                            $('#validationMessage').text('The dependent variable cannot also be an independent variable').show();
+                            return false;
+                        }
+                        
+                        return isValid;
                     }
                 },
                 polynomial_regression: {
@@ -417,17 +474,24 @@
                             id: "degree",
                             label: "Polynomial Degree",
                             type: "number",
-                            min: 2,
+                            min: 1,
                             max: 10,
                             default: 2,
-                            description: "Higher values model more complex relationships (2=quadratic, 3=cubic, etc.)"
+                            description: "Higher values model more complex relationships (1=linear, 2=quadratic, 3=cubic, etc.)"
                         }
                     ],
                     validate: function(selected) {
-                        return selected.dependent_var && 
+                        let isValid = selected.dependent_var && 
                                selected.independent_var && 
-                               selected.degree >= 2 && 
+                               selected.degree >= 1 && 
                                selected.degree <= 10;
+                        
+                        if (isValid && selected.dependent_var === selected.independent_var) {
+                            $('#validationMessage').text('The dependent variable cannot also be an independent variable').show();
+                            return false;
+                        }
+                        
+                        return isValid;
                     }
                 },
                 logistic_regression: {
@@ -446,13 +510,20 @@
                             type: "numeric",
                             multiple: true,
                             min: 1,
-                            description: "The predictor variables"
+                            description: "The predictor variables (at least 1)"
                         }
                     ],
                     validate: function(selected) {
-                        return selected.dependent_var && 
+                        let isValid = selected.dependent_var && 
                                selected.independent_vars && 
                                selected.independent_vars.length >= 1;
+                        
+                        if (isValid && selected.independent_vars.includes(selected.dependent_var)) {
+                            $('#validationMessage').text('The dependent variable cannot also be an independent variable').show();
+                            return false;
+                        }
+                        
+                        return isValid;
                     }
                 },
                 anova: {
@@ -470,15 +541,22 @@
                             label: "Grouping Variable",
                             type: "both",
                             multiple: false,
-                            description: "The categorical variable that defines your groups"
+                            description: "The categorical variable or numeric with low cardinality that defines your groups"
                         }
                     ],
                     validate: function(selected) {
-                        return selected.dependent_var && selected.grouping_var;
+                        let isValid = selected.dependent_var && selected.grouping_var;
+                        
+                        if (isValid && selected.dependent_var === selected.grouping_var) {
+                            $('#validationMessage').text('The dependent variable should be different from the grouping variable').show();
+                            return false;
+                        }
+                        
+                        return isValid;
                     }
                 },
                 chi_square: {
-                    description: "Chi-Square test examines if there is a significant association between two categorical variables.",
+                    description: "Chi-Square test examines if there is a significant association between two categorical variables (or numeric with low cardinality).",
                     variables: [
                         {
                             id: "var1",
@@ -496,9 +574,14 @@
                         }
                     ],
                     validate: function(selected) {
-                        return selected.var1 && 
-                               selected.var2 && 
-                               selected.var1 !== selected.var2;
+                        let isValid = selected.var1 && selected.var2;
+                        
+                        if (isValid && selected.var1 === selected.var2) {
+                            $('#validationMessage').text('Please select two different variables for Chi-Square test').show();
+                            return false;
+                        }
+                        
+                        return isValid;
                     }
                 },
                 correlation: {
@@ -575,7 +658,7 @@
                     options: [
                         {
                             id: "n_clusters",
-                            label: "Number of Clusters",
+                            label: "Number of Clusters (k)",
                             type: "number",
                             min: 2,
                             max: 10,
@@ -586,7 +669,8 @@
                     validate: function(selected) {
                         return selected.numeric_vars && 
                                selected.numeric_vars.length >= 2 && 
-                               selected.n_clusters >= 2;
+                               selected.n_clusters >= 2 &&
+                               selected.n_clusters <= 10;
                     }
                 },
                 residual_diagnostics: {
@@ -605,13 +689,20 @@
                             type: "numeric",
                             multiple: true,
                             min: 1,
-                            description: "The predictor variables"
+                            description: "The predictor variables (at least 1)"
                         }
                     ],
                     validate: function(selected) {
-                        return selected.dependent_var && 
+                        let isValid = selected.dependent_var && 
                                selected.independent_vars && 
                                selected.independent_vars.length >= 1;
+                        
+                        if (isValid && selected.independent_vars.includes(selected.dependent_var)) {
+                            $('#validationMessage').text('The dependent variable cannot also be an independent variable').show();
+                            return false;
+                        }
+                        
+                        return isValid;
                     }
                 }
             };
@@ -654,8 +745,8 @@
                             $('#analysisMenu').show();
 
                             // Store column metadata
-                            columnData.numeric = response.data.numeric_columns;
-                            columnData.categorical = response.data.categorical_columns;
+                            columnData.numeric = response.data.numeric_columns || [];
+                            columnData.categorical = response.data.categorical_columns || [];
                             
                             // Display summary of uploaded data
                             let dataOverview = `
@@ -697,6 +788,9 @@
                         } else {
                             $('#uploadStatus').html('<div class="alert alert-danger">' + response.message + '</div>');
                         }
+                    },
+                    error: function() {
+                        $('#uploadStatus').html('<div class="alert alert-danger">Error uploading file. Please try again.</div>');
                     }
                 });
             });
@@ -720,11 +814,13 @@
                                 options.push(`<option value="${col}">${col}</option>`);
                             });
                         } else if (variable.type === "both") {
-                            columnData.numeric.forEach(col => {
-                                options.push(`<option value="${col}">${col} (numeric)</option>`);
-                            });
+                            // For categorical variables and numeric with low cardinality
                             columnData.categorical.forEach(col => {
                                 options.push(`<option value="${col}">${col} (categorical)</option>`);
+                            });
+                            
+                            columnData.numeric.forEach(col => {
+                                options.push(`<option value="${col}">${col} (numeric)</option>`);
                             });
                         }
                         
@@ -752,39 +848,61 @@
                 
                 if (requirements.options) {
                     requirements.options.forEach(option => {
+                        // Check if this option depends on another control
+                        const parentControlClass = option.parentControl ? 'dependent-option' : '';
+                        const parentControlAttr = option.parentControl ? `data-parent="${option.parentControl}"` : '';
+                        
+                        const optionHTML = $(`<div class="mb-4 ${parentControlClass}" ${parentControlAttr}></div>`);
+                        
                         if (option.type === "select") {
-                            additionalOptions.append(`
-                                <div class="mb-4">
-                                    <label class="form-label">${option.label}</label>
-                                    <select class="form-control" id="${option.id}" name="${option.id}">
-                                        ${option.options.map(opt => 
-                                            `<option value="${opt.value}" ${opt.value === option.default ? 'selected' : ''}>${opt.label}</option>`
-                                        ).join('')}
-                                    </select>
-                                    <small class="form-text text-muted">${option.description}</small>
-                                </div>
+                            optionHTML.append(`
+                                <label class="form-label">${option.label}</label>
+                                <select class="form-control" id="${option.id}" name="${option.id}">
+                                    ${option.options.map(opt => 
+                                        `<option value="${opt.value}" ${opt.value === option.default ? 'selected' : ''}>${opt.label}</option>`
+                                    ).join('')}
+                                </select>
+                                <small class="form-text text-muted">${option.description}</small>
                             `);
                         } else if (option.type === "number") {
-                            additionalOptions.append(`
-                                <div class="mb-4">
-                                    <label class="form-label">${option.label}</label>
-                                    <input type="number" class="form-control" id="${option.id}" name="${option.id}" 
-                                        value="${option.default}" min="${option.min}" max="${option.max}">
-                                    <small class="form-text text-muted">${option.description}</small>
-                                </div>
+                            optionHTML.append(`
+                                <label class="form-label">${option.label}</label>
+                                <input type="number" class="form-control" id="${option.id}" name="${option.id}" 
+                                    value="${option.default}" min="${option.min}" max="${option.max || ''}" ${option.step ? `step="${option.step}"` : ''}>
+                                <small class="form-text text-muted">${option.description}</small>
                             `);
                         } else if (option.type === "checkbox") {
-                            additionalOptions.append(`
-                                <div class="mb-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="${option.id}" name="${option.id}" ${option.default ? 'checked' : ''}>
-                                        <label class="form-check-label" for="${option.id}">
-                                            ${option.label}
-                                        </label>
-                                    </div>
-                                    <small class="form-text text-muted">${option.description}</small>
+                            optionHTML.append(`
+                                <div class="form-check">
+                                    <input class="form-check-input control-toggle" type="checkbox" id="${option.id}" name="${option.id}" ${option.default ? 'checked' : ''}>
+                                    <label class="form-check-label" for="${option.id}">
+                                        ${option.label}
+                                    </label>
                                 </div>
+                                <small class="form-text text-muted">${option.description}</small>
                             `);
+                        }
+                        
+                        additionalOptions.append(optionHTML);
+                    });
+                    
+                    // Handle dependent options
+                    $('.control-toggle').on('change', function() {
+                        const controlId = $(this).attr('id');
+                        if ($(this).is(':checked')) {
+                            $(`[data-parent="${controlId}"]`).slideDown();
+                        } else {
+                            $(`[data-parent="${controlId}"]`).slideUp();
+                        }
+                    });
+                    
+                    // Initialize any checkboxes that are checked by default
+                    $('.control-toggle').each(function() {
+                        const controlId = $(this).attr('id');
+                        if ($(this).is(':checked')) {
+                            $(`[data-parent="${controlId}"]`).show();
+                        } else {
+                            $(`[data-parent="${controlId}"]`).hide();
                         }
                     });
                 }
@@ -795,58 +913,39 @@
                 });
             }
             
-            function validateSelections() {
-                const requirements = analysisRequirements[currentAnalysis];
-                let allValid = true;
+            function getFormValues() {
+                const values = {};
                 
-                $('select.variable-select').each(function() {
-                    const $select = $(this);
-                    const min = parseInt($select.data('min') || 0);
-                    const selected = $select.val();
-                    
-                    if (Array.isArray(selected)) {
-                        if (selected.length < min) {
-                            allValid = false;
-                            $select.addClass('is-invalid');
-                        } else {
-                            $select.removeClass('is-invalid');
-                        }
-                    } else if (!selected && min > 0) {
-                        allValid = false;
-                        $select.addClass('is-invalid');
-                    } else {
-                        $select.removeClass('is-invalid');
-                    }
+                // Get all select values
+                $('#columnsForm select').each(function() {
+                    const name = $(this).attr('name');
+                    const value = $(this).val();
+                    values[name] = value;
                 });
                 
-                // Check for dependent variable in independent variables
-                if (currentAnalysis.includes('regression') || currentAnalysis === 'residual_diagnostics') {
-                    const dependent = $('#dependent_var').val();
-                    const independent = $('#independent_vars').val() || $('#independent_var').val();
-                    
-                    if (dependent && independent) {
-                        if (Array.isArray(independent) && independent.includes(dependent)) {
-                            allValid = false;
-                            $('#validationMessage').text('The dependent variable cannot also be an independent variable').show();
-                        }
-                        else if (dependent === independent) {
-                            allValid = false;
-                            $('#validationMessage').text('The dependent variable cannot also be an independent variable').show();
-                        }
-                    }
-                }
+                // Get all checkbox values
+                $('#columnsForm input[type="checkbox"]').each(function() {
+                    const name = $(this).attr('name');
+                    values[name] = $(this).is(':checked');
+                });
                 
-                if (currentAnalysis === 'chi_square') {
-                    const var1 = $('#var1').val();
-                    const var2 = $('#var2').val();
-                    
-                    if (var1 && var2 && var1 === var2) {
-                        allValid = false;
-                        $('#validationMessage').text('Please select two different variables for Chi-Square test').show();
-                    }
-                }
+                // Get all number input values
+                $('#columnsForm input[type="number"]').each(function() {
+                    const name = $(this).attr('name');
+                    values[name] = $(this).val();
+                });
                 
-                return allValid;
+                return values;
+            }
+            
+            function validateSelections() {
+                const requirements = analysisRequirements[currentAnalysis];
+                $('#validationMessage').hide();
+                
+                if (!requirements) return false;
+                
+                const formValues = getFormValues();
+                return requirements.validate(formValues);
             }
             
             // Select analysis type
@@ -898,8 +997,12 @@
                 e.preventDefault();
                 
                 const analysis = $(this).data('analysis');
+                
                 // Validate selections
                 if (!validateSelections()) {
+                    if ($('#validationMessage').is(':hidden')) {
+                        $('#validationMessage').text('Please correct the errors and try again').show();
+                    }
                     return false;
                 }
                 
@@ -909,35 +1012,81 @@
                 const formData = new FormData();
                 formData.append('analysis_type', analysis);
                 
-                // Add all selected variables
-                $(this).find('select').each(function() {
-                    const name = $(this).attr('name');
-                    const value = $(this).val();
-                    
-                    if (value) {
-                        if (Array.isArray(value)) {
-                            value.forEach(v => {
-                                formData.append(name === 'numeric_vars' || name === 'independent_vars' ? 'columns' : name, v);
-                            });
-                        } else {
-                            formData.append(name === 'numeric_vars' || name === 'independent_vars' ? 'columns' : name, value);
-                        }
-                    }
-                });
+                // Get all form values
+                const formValues = getFormValues();
                 
-                // Add additional options
-                $(this).find('input').each(function() {
-                    const type = $(this).attr('type');
-                    const name = $(this).attr('name');
-                    
-                    if (type === 'checkbox') {
-                        if ($(this).is(':checked')) {
-                            formData.append(name, 'true');
+                // Add selected variables to formData based on analysis type requirements
+                const requirements = analysisRequirements[analysis];
+                
+                if (requirements.variables) {
+                    requirements.variables.forEach(variable => {
+                        const id = variable.id;
+                        const value = formValues[id];
+                        
+                        if (value) {
+                            if (Array.isArray(value)) {
+                                // Handle multiple selection variables
+                                if (id === 'numeric_vars' || id === 'independent_vars') {
+                                    // These get mapped to 'columns' for the backend
+                                    value.forEach(v => formData.append('columns', v));
+                                } else {
+                                    value.forEach(v => formData.append(id, v));
+                                }
+                            } else {
+                                // Handle single selection variables
+                                formData.append(id, value);
+                            }
                         }
-                    } else {
-                        formData.append(name, $(this).val());
-                    }
-                });
+                    });
+                }
+                
+                // Add options to formData
+                if (requirements.options) {
+                    requirements.options.forEach(option => {
+                        const id = option.id;
+                        
+                        if (option.type === 'checkbox') {
+                            if (formValues[id]) {
+                                formData.append(id, 'true');
+                            }
+                        } else if (formValues[id] !== undefined) {
+                            formData.append(id, formValues[id]);
+                        }
+                    });
+                }
+                
+                // Special handling for different analysis types
+                switch(analysis) {
+                    case 'linear_regression':
+                        // Map to expected backend params
+                        formData.append('dependent_var', formValues.dependent_var);
+                        formData.append('columns', formValues.independent_var);
+                        break;
+                        
+                    case 'multiple_regression':
+                        // Already handled by the general code above
+                        break;
+                        
+                    case 'polynomial_regression':
+                        // Map to expected backend params
+                        formData.append('dependent_var', formValues.dependent_var);
+                        formData.append('columns', formValues.independent_var);
+                        break;
+                        
+                    case 'anova':
+                        // Map grouping_var to expected backend param
+                        formData.append('dependent_var', formValues.dependent_var);
+                        formData.append('columns', formValues.grouping_var);
+                        break;
+                        
+                    case 'descriptive_statistics':
+                        // Add row filtering if enabled
+                        if (formValues.filter_rows) {
+                            formData.append('start_row', formValues.start_row);
+                            formData.append('end_row', formValues.end_row);
+                        }
+                        break;
+                }
                 
                 $.ajax({
                     url: '/analyze',
@@ -963,10 +1112,12 @@
                     }
                 });
             });
+            
             // Render results
             function renderResults(analysisType, result) {
                 const container = $('#resultsContent').empty();
                 $('#resultsTitle').text(analysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ' Results');                
+                
                 // Handle images if present
                 if (result[analysisType] && Array.isArray(result[analysisType])) {
                     result[analysisType].forEach(item => {
@@ -984,6 +1135,7 @@
                         }
                     });
                 }          
+                
                 // Handle statistics if present
                 if (result.statistics) {
                     container.append(`
@@ -1018,13 +1170,16 @@
                                 </table>
                             </div>
                         </div>
-                    `);}
+                    `);
+                }
+                
                 // Process any other result types
                 for (let key in result) {
                     // Skip already processed parts
                     if (key === 'statistics' || (key === analysisType && Array.isArray(result[key]))) {
                         continue;
                     }
+                    
                     if (typeof result[key] === 'object' && !Array.isArray(result[key])) {
                         // For objects like classification_report
                         container.append(`
@@ -1061,7 +1216,8 @@
                                 ${result[key]}
                             </div>
                         `);
-                    }}
+                    }
+                }
                 
                 // Add timestamp
                 container.append(`
