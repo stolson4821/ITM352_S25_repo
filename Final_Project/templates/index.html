@@ -6,6 +6,7 @@
     <title>Statistical Analysis Tool</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
         .analysis-container {
             display: none;
@@ -36,9 +37,41 @@
         .result-image {
             max-width: 100%;
             margin-bottom: 20px;
+            transition: transform 0.2s;
+            cursor: zoom-in;
+        }
+        .result-image:hover {
+            transform: scale(1.02);
+        }
+        .result-image.expanded {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            max-width: 90%;
+            max-height: 90%;
+            z-index: 1050;
+            background-color: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            transform: none;
+            cursor: zoom-out;
+        }
+        .image-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1040;
+            cursor: zoom-out;
         }
         .table-responsive {
             margin-bottom: 20px;
+            overflow-x: auto;
         }
         .select2-container {
             width: 100% !important;
@@ -58,6 +91,7 @@
         }
         .analysis-card {
             transition: transform 0.2s;
+            cursor: pointer;
         }
         .analysis-card:hover {
             transform: translateY(-5px);
@@ -107,11 +141,68 @@
         .dependent-option {
             display: none;
         }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .expandable-section {
+            cursor: pointer;
+        }
+        .expandable-content {
+            display: none;
+            margin-top: 10px;
+        }
+        @media (max-width: 767.98px) {
+            .card-title {
+                font-size: 1rem;
+            }
+            .card-text {
+                font-size: 0.85rem;
+            }
+            .result-image {
+                max-width: 100% !important;
+            }
+            .table {
+                font-size: 0.8rem;
+            }
+            .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem;
+            }
+        }
+        .tooltip-inner {
+            max-width: 300px;
+        }
+        .memory-status {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .analysis-info-icon {
+            margin-left: 5px;
+            cursor: help;
+        }
+        .fullscreen-modal .modal-dialog {
+            max-width: 95%;
+            max-height: 95%;
+            margin: 20px auto;
+        }
+        .fullscreen-modal .modal-content {
+            height: 90vh;
+        }
+        .fullscreen-modal .modal-body {
+            overflow-y: auto;
+            max-height: calc(90vh - 120px);
+        }
     </style>
 </head>
 <body>
     <div class="container mt-4 mb-5">
         <h1 class="text-center mb-4">Statistical Analysis Tool</h1>
+        
+        <!-- Memory status indicator -->
+        <div class="memory-status d-none"></div>
         
         <!-- Step Indicator -->
         <div class="step-indicator mb-4">
@@ -130,8 +221,11 @@
                     <div class="mb-3">
                         <label for="csvFile" class="form-label">Select CSV File</label>
                         <input class="form-control" type="file" id="csvFile" name="file" accept=".csv">
+                        <small class="form-text text-muted">Maximum file size: 50MB. File must be in CSV format.</small>
                     </div>
-                    <button type="submit" class="btn btn-primary">Upload</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-1"></i> Upload
+                    </button>
                 </form>
                 <div id="uploadStatus" class="mt-3"></div>
             </div>
@@ -139,15 +233,32 @@
 
         <!-- Analysis Menu -->
         <div id="analysisMenu" class="card mb-4" style="display: none;">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <h5>Select Analysis Type</h5>
+                <div>
+                    <button class="btn btn-sm btn-light" id="clearMemoryBtn" title="Free memory by clearing loaded data">
+                        <i class="fas fa-broom me-1"></i> Clear Memory
+                    </button>
+                </div>
             </div>
             <div class="card-body">
-                <div class="row row-cols-1 row-cols-md-2 g-4">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-1"></i> Select an analysis method below. Hover over the info icon for more details about each analysis.
+                </div>
+                <div class="data-preview mb-4">
+                    <h6>Data Preview <small>(first 5 rows)</small>:</h6>
+                    <div class="table-responsive" id="dataPreview"></div>
+                </div>
+                <div class="row row-cols-1 row-cols-md-3 g-4">
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="descriptive_statistics">
                             <div class="card-body">
-                                <h5 class="card-title">Descriptive Statistics</h5>
+                                <h5 class="card-title">
+                                    Descriptive Statistics
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Calculate mean, median, standard deviation, and other key measures for numeric variables"></i>
+                                </h5>
                                 <p class="card-text">Analyze key statistical measures of numeric data.</p>
                             </div>
                         </div>
@@ -155,7 +266,12 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="scatter_matrix">
                             <div class="card-body">
-                                <h5 class="card-title">Scatter Matrix</h5>
+                                <h5 class="card-title">
+                                    Scatter Matrix
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Create a grid of scatter plots showing pairwise relationships between multiple variables"></i>
+                                </h5>
                                 <p class="card-text">Visualize relationships between multiple numeric variables.</p>
                             </div>
                         </div>
@@ -163,15 +279,25 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="linear_regression">
                             <div class="card-body">
-                                <h5 class="card-title">Linear Regression (Single)</h5>
-                                <p class="card-text">Model the relationship between variables.</p>
+                                <h5 class="card-title">
+                                    Linear Regression
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Model the linear relationship between a dependent variable and a single independent variable"></i>
+                                </h5>
+                                <p class="card-text">Model relationship between two variables.</p>
                             </div>
                         </div>
                     </div>
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="multiple_regression">
                             <div class="card-body">
-                                <h5 class="card-title">Multiple Regression</h5>
+                                <h5 class="card-title">
+                                    Multiple Regression
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Model the relationship between a dependent variable and multiple independent variables"></i>
+                                </h5>
                                 <p class="card-text">Model with multiple independent variables.</p>
                             </div>
                         </div>
@@ -179,7 +305,12 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="polynomial_regression">
                             <div class="card-body">
-                                <h5 class="card-title">Polynomial Regression</h5>
+                                <h5 class="card-title">
+                                    Polynomial Regression
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Model non-linear relationships using polynomial terms (quadratic, cubic, etc.)"></i>
+                                </h5>
                                 <p class="card-text">Model non-linear relationships.</p>
                             </div>
                         </div>
@@ -187,7 +318,12 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="logistic_regression">
                             <div class="card-body">
-                                <h5 class="card-title">Logistic Regression</h5>
+                                <h5 class="card-title">
+                                    Logistic Regression
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Predict binary outcomes using one or more predictor variables"></i>
+                                </h5>
                                 <p class="card-text">Model binary outcomes.</p>
                             </div>
                         </div>
@@ -195,7 +331,12 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="anova">
                             <div class="card-body">
-                                <h5 class="card-title">ANOVA</h5>
+                                <h5 class="card-title">
+                                    ANOVA
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Analysis of Variance - compare means across different groups to detect significant differences"></i>
+                                </h5>
                                 <p class="card-text">Compare means across groups.</p>
                             </div>
                         </div>
@@ -203,7 +344,12 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="chi_square">
                             <div class="card-body">
-                                <h5 class="card-title">Chi-Square Test</h5>
+                                <h5 class="card-title">
+                                    Chi-Square Test
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Test for association between categorical variables using contingency tables"></i>
+                                </h5>
                                 <p class="card-text">Test for association between categorical variables.</p>
                             </div>
                         </div>
@@ -211,7 +357,12 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="correlation">
                             <div class="card-body">
-                                <h5 class="card-title">Correlation Heatmap</h5>
+                                <h5 class="card-title">
+                                    Correlation Analysis
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Measure the strength and direction of relationships between pairs of variables"></i>
+                                </h5>
                                 <p class="card-text">Measure relationships between variables.</p>
                             </div>
                         </div>
@@ -219,15 +370,25 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="pca">
                             <div class="card-body">
-                                <h5 class="card-title">PCA Analysis</h5>
-                                <p class="card-text">Reduce dimensionality while preserving variance.</p>
+                                <h5 class="card-title">
+                                    PCA Analysis
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Principal Component Analysis - reduce dimensionality while preserving variance"></i>
+                                </h5>
+                                <p class="card-text">Reduce dimensions while preserving variance.</p>
                             </div>
                         </div>
                     </div>
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="clustering">
                             <div class="card-body">
-                                <h5 class="card-title">Clustering (KMeans)</h5>
+                                <h5 class="card-title">
+                                    K-Means Clustering
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Group similar data points into clusters based on feature similarity"></i>
+                                </h5>
                                 <p class="card-text">Group similar data points into clusters.</p>
                             </div>
                         </div>
@@ -235,7 +396,12 @@
                     <div class="col">
                         <div class="card h-100 analysis-card" data-analysis="residual_diagnostics">
                             <div class="card-body">
-                                <h5 class="card-title">Residual Diagnostics</h5>
+                                <h5 class="card-title">
+                                    Residual Diagnostics
+                                    <i class="fas fa-info-circle text-primary analysis-info-icon" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Analyze regression residuals to check model assumptions like normality and homoscedasticity"></i>
+                                </h5>
                                 <p class="card-text">Validate regression model assumptions.</p>
                             </div>
                         </div>
@@ -264,8 +430,12 @@
                     <div id="validationMessage" class="alert alert-warning validation-message mb-4"></div>
                     
                     <div class="d-flex justify-content-between">
-                        <button type="button" class="btn btn-secondary" id="backToMenu">Back</button>
-                        <button type="submit" class="btn btn-primary">Run Analysis</button>
+                        <button type="button" class="btn btn-secondary" id="backToMenu">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-play me-1"></i> Run Analysis
+                        </button>
                     </div>
                 </form>
             </div>
@@ -273,11 +443,19 @@
 
         <!-- Loading Indicator -->
         <div id="loading" class="loading">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+            <div>
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p id="loadingText" class="mb-3">Processing analysis...</p>
+                <div class="progress" style="height: 20px; width: 300px; margin: 0 auto;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
             </div>
-            <p class="mt-2">Processing analysis...</p>
         </div>
+
+        <!-- Image Overlay for Zoomed Images -->
+        <div id="imageOverlay" class="image-overlay"></div>
 
         <!-- Results Section -->
         <div id="resultsContainer" class="card mb-4" style="display: none;">
@@ -287,9 +465,28 @@
             <div class="card-body">
                 <div id="resultsContent"></div>
                 <div class="d-flex justify-content-between mt-4">
-                    <button type="button" class="btn btn-secondary" id="backToVariables">Back to Variables</button>
-                    <button type="button" class="btn btn-primary" id="newAnalysis">New Analysis</button>
+                    <button type="button" class="btn btn-secondary" id="backToVariables">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Variables
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-info me-2" id="downloadResults" style="display: none;">
+                            <i class="fas fa-download me-1"></i> Download Results
+                        </button>
+                        <button type="button" class="btn btn-primary" id="newAnalysis">
+                            <i class="fas fa-plus me-1"></i> New Analysis
+                        </button>
+                    </div>
                 </div>
+            </div>
+                <!-- Full-screen Modal for Large Images/Tables -->
+    <div class="modal fade fullscreen-modal" id="fullscreenModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body"></div>
             </div>
         </div>
     </div>
@@ -308,10 +505,74 @@
             // Current analysis type
             let currentAnalysis = '';
             
+            // Progress bar simulation variables
+            let progressInterval;
+            let currentProgress = 0;
+            
+            // Initialize tooltips
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+            
+            // Check memory usage periodically
+            function checkMemoryUsage() {
+                $.ajax({
+                    url: '/get_memory_usage',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            const memInfo = response.memory_info;
+                            const memoryStatus = $('.memory-status');
+                            
+                            // Format memory usage
+                            const dfMemory = memInfo.dataframe_memory_mb.toFixed(2);
+                            const procMemory = memInfo.process_memory_mb.toFixed(2);
+                            const availMemory = memInfo.system_available_memory_mb.toFixed(2);
+                            
+                            // Show memory indicator if data is loaded
+                            if (memInfo.dataframe_memory_mb > 0) {
+                                memoryStatus.removeClass('d-none').html(`
+                                    <i class="fas fa-memory"></i> Memory: 
+                                    Dataset: ${dfMemory} MB | 
+                                    Process: ${procMemory} MB | 
+                                    Available: ${availMemory} MB
+                                `);
+                                
+                                // Add warning if memory usage is high
+                                if (memInfo.dataframe_memory_mb > 500 || memInfo.process_memory_mb > 1000) {
+                                    memoryStatus.addClass('bg-warning');
+                                } else {
+                                    memoryStatus.removeClass('bg-warning');
+                                }
+                            } else {
+                                memoryStatus.addClass('d-none');
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Clear memory
+            $('#clearMemoryBtn').on('click', function() {
+                $.ajax({
+                    url: '/memory_cleanup',
+                    method: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Memory cleared successfully. Please upload a new file.');
+                            // Reset UI to initial state
+                            $('#analysisMenu').hide();
+                            $('#uploadSection').show();
+                            updateStepIndicator(1);
+                            $('.memory-status').addClass('d-none');
+                        }
+                    }
+                });
+            });
+            
             // Analysis requirements
             const analysisRequirements = {
                 descriptive_statistics: {
-                    description: "This analysis provides key statistical measures (mean, median, standard deviation, etc.) for selected numeric variables.",
+                    description: "This analysis provides key statistical measures (mean, median, standard deviation, etc.) for selected numeric variables. It calculates central tendency, dispersion, and distribution characteristics.",
                     variables: [
                         {
                             id: "numeric_vars",
@@ -366,7 +627,7 @@
                     }
                 },
                 scatter_matrix: {
-                    description: "This creates a matrix of scatter plots to visualize relationships between multiple numeric variables.",
+                    description: "This creates a matrix of scatter plots to visualize relationships between multiple numeric variables. It's useful for identifying patterns, correlations, and outliers across many variables at once.",
                     variables: [
                         {
                             id: "numeric_vars",
@@ -374,29 +635,35 @@
                             type: "numeric",
                             multiple: true,
                             min: 2,
-                            description: "Select two or more numeric variables"
+                            max: 8,
+                            description: "Select between 2-8 numeric variables (selecting too many may make the visualization hard to read)"
                         }
                     ],
                     validate: function(selected) {
-                        return selected.numeric_vars && selected.numeric_vars.length >= 2;
+                        let isValid = selected.numeric_vars && selected.numeric_vars.length >= 2;
+                        if (selected.numeric_vars && selected.numeric_vars.length > 8) {
+                            $('#validationMessage').text('Please select a maximum of 8 variables for better visualization').show();
+                            return false;
+                        }
+                        return isValid;
                     }
                 },
                 linear_regression: {
-                    description: "Linear regression models the relationship between one independent variable and a dependent variable.",
+                    description: "Linear regression models the relationship between one independent variable and a dependent variable. It finds the best-fitting straight line through the points and calculates metrics like R-squared to assess fit quality.",
                     variables: [
                         {
                             id: "dependent_var",
                             label: "Dependent Variable (Y)",
                             type: "numeric",
                             multiple: false,
-                            description: "The variable you want to predict"
+                            description: "The variable you want to predict (outcome)"
                         },
                         {
                             id: "independent_var",
                             label: "Independent Variable (X)",
                             type: "numeric",
                             multiple: false,
-                            description: "The predictor variable"
+                            description: "The predictor variable (feature)"
                         }
                     ],
                     validate: function(selected) {
@@ -411,14 +678,14 @@
                     }
                 },
                 multiple_regression: {
-                    description: "Multiple regression models the relationship between multiple independent variables and one dependent variable.",
+                    description: "Multiple regression models the relationship between multiple independent variables and one dependent variable. It helps understand how several predictors together affect an outcome.",
                     variables: [
                         {
                             id: "dependent_var",
                             label: "Dependent Variable (Y)",
                             type: "numeric",
                             multiple: false,
-                            description: "The variable you want to predict"
+                            description: "The variable you want to predict (outcome)"
                         },
                         {
                             id: "independent_vars",
@@ -426,16 +693,16 @@
                             type: "numeric",
                             multiple: true,
                             min: 1,
-                            description: "The predictor variables (at least 1)"
+                            description: "The predictor variables (features) - at least 1"
                         }
                     ],
                     options: [
                         {
                             id: "include_diagnostics",
-                            label: "Include Diagnostics",
+                            label: "Include Detailed Diagnostics",
                             type: "checkbox",
                             default: false,
-                            description: "Include detailed model diagnostics in results"
+                            description: "Include detailed model diagnostics in results (VIF, detailed residual analysis)"
                         }
                     ],
                     validate: function(selected) {
@@ -452,21 +719,21 @@
                     }
                 },
                 polynomial_regression: {
-                    description: "Polynomial regression models non-linear relationships by including polynomial terms.",
+                    description: "Polynomial regression models non-linear relationships by including polynomial terms (squared, cubed, etc.) of the independent variable. It can capture more complex patterns than simple linear regression.",
                     variables: [
                         {
                             id: "dependent_var",
                             label: "Dependent Variable (Y)",
                             type: "numeric",
                             multiple: false,
-                            description: "The variable you want to predict"
+                            description: "The variable you want to predict (outcome)"
                         },
                         {
                             id: "independent_var",
                             label: "Independent Variable (X)",
                             type: "numeric",
                             multiple: false,
-                            description: "The predictor variable"
+                            description: "The predictor variable (feature)"
                         }
                     ],
                     options: [
@@ -495,14 +762,14 @@
                     }
                 },
                 logistic_regression: {
-                    description: "Logistic regression models binary outcomes based on one or more predictor variables.",
+                    description: "Logistic regression models binary outcomes (yes/no, true/false, 0/1) based on one or more predictor variables. It estimates the probability of the outcome belonging to a particular category.",
                     variables: [
                         {
                             id: "dependent_var",
                             label: "Dependent Variable (Y)",
                             type: "both",
                             multiple: false,
-                            description: "The binary outcome variable"
+                            description: "The binary outcome variable (must have exactly 2 values)"
                         },
                         {
                             id: "independent_vars",
@@ -510,7 +777,7 @@
                             type: "numeric",
                             multiple: true,
                             min: 1,
-                            description: "The predictor variables (at least 1)"
+                            description: "The predictor variables (features) - at least 1"
                         }
                     ],
                     validate: function(selected) {
@@ -527,7 +794,7 @@
                     }
                 },
                 anova: {
-                    description: "ANOVA (Analysis of Variance) compares means across groups to detect significant differences.",
+                    description: "ANOVA (Analysis of Variance) compares means across groups to detect significant differences. It tests whether the means of several groups are all equal or at least one differs from the others.",
                     variables: [
                         {
                             id: "dependent_var",
@@ -556,7 +823,7 @@
                     }
                 },
                 chi_square: {
-                    description: "Chi-Square test examines if there is a significant association between two categorical variables (or numeric with low cardinality).",
+                    description: "Chi-Square test examines if there is a significant association between two categorical variables (or numeric with low cardinality). It compares observed frequencies to expected frequencies under the null hypothesis of no association.",
                     variables: [
                         {
                             id: "var1",
@@ -585,7 +852,7 @@
                     }
                 },
                 correlation: {
-                    description: "Correlation analysis measures the strength and direction of relationships between pairs of variables.",
+                    description: "Correlation analysis measures the strength and direction of relationships between pairs of variables. It calculates correlation coefficients to quantify how changes in one variable are associated with changes in another.",
                     variables: [
                         {
                             id: "numeric_vars",
@@ -602,9 +869,9 @@
                             label: "Correlation Method",
                             type: "select",
                             options: [
-                                { value: "pearson", label: "Pearson (linear)" },
-                                { value: "spearman", label: "Spearman (monotonic)" },
-                                { value: "kendall", label: "Kendall (ordinal)" }
+                                { value: "pearson", label: "Pearson (linear relationships)" },
+                                { value: "spearman", label: "Spearman (monotonic relationships)" },
+                                { value: "kendall", label: "Kendall (ordinal relationships)" }
                             ],
                             default: "pearson",
                             description: "The method to calculate correlations"
@@ -616,7 +883,7 @@
                     }
                 },
                 pca: {
-                    description: "Principal Component Analysis (PCA) reduces dimensionality while preserving variance in the data.",
+                    description: "Principal Component Analysis (PCA) reduces dimensionality while preserving variance in the data. It transforms correlated variables into a smaller set of uncorrelated principal components that capture the most important patterns.",
                     variables: [
                         {
                             id: "numeric_vars",
@@ -644,7 +911,7 @@
                     }
                 },
                 clustering: {
-                    description: "KMeans clustering groups similar data points into clusters based on selected features.",
+                    description: "KMeans clustering groups similar data points into clusters based on selected features. It partitions the data into k groups where each observation belongs to the cluster with the nearest mean.",
                     variables: [
                         {
                             id: "numeric_vars",
@@ -674,14 +941,14 @@
                     }
                 },
                 residual_diagnostics: {
-                    description: "Analyzes regression residuals to validate model assumptions such as normality and homoscedasticity.",
+                    description: "Analyzes regression residuals to validate model assumptions such as normality, homoscedasticity (constant variance), and independence. It helps evaluate if a regression model is appropriate for your data.",
                     variables: [
                         {
                             id: "dependent_var",
                             label: "Dependent Variable (Y)",
                             type: "numeric",
                             multiple: false,
-                            description: "The variable you want to predict"
+                            description: "The variable you want to predict (outcome)"
                         },
                         {
                             id: "independent_vars",
@@ -689,7 +956,7 @@
                             type: "numeric",
                             multiple: true,
                             min: 1,
-                            description: "The predictor variables (at least 1)"
+                            description: "The predictor variables (features) - at least 1"
                         }
                     ],
                     validate: function(selected) {
@@ -725,6 +992,43 @@
                 });
             }
             
+            // Start progress bar animation
+            function startProgressBar() {
+                // Reset progress
+                currentProgress = 0;
+                $('.progress-bar').css('width', '0%');
+                
+                // Simulate progress
+                progressInterval = setInterval(function() {
+                    currentProgress += Math.random() * 3;
+                    if (currentProgress > 90) {
+                        currentProgress = 90; // Cap at 90%, last 10% when done
+                    }
+                    $('.progress-bar').css('width', currentProgress + '%');
+                    
+                    // Update loading text based on progress
+                    if (currentProgress < 30) {
+                        $('#loadingText').text('Processing analysis...');
+                    } else if (currentProgress < 60) {
+                        $('#loadingText').text('Calculating statistics...');
+                    } else {
+                        $('#loadingText').text('Generating visualizations...');
+                    }
+                }, 200);
+            }
+            
+            // Complete progress bar
+            function completeProgressBar() {
+                clearInterval(progressInterval);
+                $('.progress-bar').css('width', '100%');
+                $('#loadingText').text('Finalizing results...');
+                
+                // Small delay before hiding
+                setTimeout(function() {
+                    $('#loading').hide();
+                }, 500);
+            }
+            
             // Upload CSV
             $('#uploadForm').on('submit', function(e) {
                 e.preventDefault();
@@ -737,16 +1041,18 @@
                     contentType: false,
                     processData: false,
                     beforeSend: () => {
-                        $('#uploadStatus').html('<div class="alert alert-info">Uploading and processing file...</div>');
+                        $('#uploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-1"></i> Uploading and processing file...</div>');
                     },
                     success: function(response) {
                         if (response.success) {
-                            $('#uploadStatus').html('<div class="alert alert-success">' + response.message + '</div>');
-                            $('#analysisMenu').show();
+                            $('#uploadStatus').html('<div class="alert alert-success"><i class="fas fa-check-circle me-1"></i> ' + response.message + '</div>');
 
                             // Store column metadata
                             columnData.numeric = response.data.numeric_columns || [];
                             columnData.categorical = response.data.categorical_columns || [];
+                            
+                            // Display data preview
+                            $('#dataPreview').html(response.preview || '');
                             
                             // Display summary of uploaded data
                             let dataOverview = `
@@ -784,13 +1090,17 @@
                                 $('#uploadSection').hide();
                                 $('#analysisMenu').show();
                                 updateStepIndicator(2);
+                                
+                                // Start checking memory usage
+                                checkMemoryUsage();
+                                setInterval(checkMemoryUsage, 30000); // Check every 30 seconds
                             }, 1000);
                         } else {
-                            $('#uploadStatus').html('<div class="alert alert-danger">' + response.message + '</div>');
+                            $('#uploadStatus').html('<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-1"></i> ' + response.message + '</div>');
                         }
                     },
-                    error: function() {
-                        $('#uploadStatus').html('<div class="alert alert-danger">Error uploading file. Please try again.</div>');
+                    error: function(xhr, status, error) {
+                        $('#uploadStatus').html('<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-1"></i> Error uploading file: ' + error + '</div>');
                     }
                 });
             });
@@ -826,11 +1136,12 @@
                         
                         const selectMultiple = variable.multiple ? 'multiple="multiple"' : '';
                         const requiredText = variable.min ? `(at least ${variable.min})` : '';
+                        const maxText = variable.max ? `, max ${variable.max}` : '';
                         
                         selectionPanel.append(`
                             <div class="mb-4">
-                                <label class="form-label">${variable.label} ${requiredText}</label>
-                                <select class="form-control variable-select" id="${variable.id}" name="${variable.id}" ${selectMultiple} data-min="${variable.min || 0}">
+                                <label class="form-label">${variable.label} ${requiredText}${maxText}</label>
+                                <select class="form-control variable-select" id="${variable.id}" name="${variable.id}" ${selectMultiple} data-min="${variable.min || 0}" data-max="${variable.max || 0}">
                                     ${!variable.multiple ? '<option value="">-- Select --</option>' : ''}
                                     ${options.join('')}
                                 </select>
@@ -847,6 +1158,8 @@
                 const additionalOptions = $('#additionalOptions').empty();
                 
                 if (requirements.options) {
+                    additionalOptions.append('<h5 class="mb-3">Additional Options</h5>');
+                    
                     requirements.options.forEach(option => {
                         // Check if this option depends on another control
                         const parentControlClass = option.parentControl ? 'dependent-option' : '';
@@ -992,6 +1305,91 @@
                 updateStepIndicator(2);
             });
             
+            // Download results button
+            $('#downloadResults').on('click', function() {
+                // Handle downloads based on analysis type
+                switch(currentAnalysis) {
+                    case 'clustering':
+                    case 'pca':
+                        const resultData = $(this).data('result-data');
+                        if (resultData) {
+                            // Request file from server
+                            $.ajax({
+                                url: `/download/${currentAnalysis}`,
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify(resultData),
+                                success: function(response) {
+                                    if (response.success) {
+                                        // Create and trigger download
+                                        const blob = new Blob([response.data], { type: 'text/csv' });
+                                        const link = document.createElement('a');
+                                        link.href = window.URL.createObjectURL(blob);
+                                        link.download = response.filename;
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    } else {
+                                        alert('Error: ' + response.message);
+                                    }
+                                },
+                                error: function() {
+                                    alert('Error downloading results');
+                                }
+                            });
+                        }
+                        break;
+                        
+                    default:
+                        alert('Download not available for this analysis type');
+                }
+            });
+            
+            // Handle image zoom functionality
+            $('body').on('click', '.result-image', function() {
+                const image = $(this);
+                if (image.hasClass('expanded')) {
+                    // Shrink image
+                    image.removeClass('expanded');
+                    $('#imageOverlay').hide();
+                } else {
+                    // Expand image
+                    image.addClass('expanded');
+                    $('#imageOverlay').show();
+                }
+            });
+            
+            // Close expanded image when clicking overlay
+            $('#imageOverlay').on('click', function() {
+                $('.result-image.expanded').removeClass('expanded');
+                $(this).hide();
+            });
+            
+            // Handle expandable sections
+            $('body').on('click', '.expandable-section', function() {
+                const content = $(this).next('.expandable-content');
+                content.slideToggle();
+                
+                // Toggle icon
+                const icon = $(this).find('i.fa-chevron-down, i.fa-chevron-up');
+                icon.toggleClass('fa-chevron-down fa-chevron-up');
+            });
+            
+            // Open full-screen modal for tables/images
+            $('body').on('click', '.full-screen-btn', function() {
+                const contentId = $(this).data('content-id');
+                const title = $(this).data('title');
+                const content = $('#' + contentId).clone();
+                
+                // Set modal content
+                $('#fullscreenModal .modal-title').text(title);
+                $('#fullscreenModal .modal-body').empty().append(content);
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('fullscreenModal'));
+                modal.show();
+            });
+            
             // Submit analysis with validation
             $('#columnsForm').on('submit', function(e) {
                 e.preventDefault();
@@ -1001,13 +1399,19 @@
                 // Validate selections
                 if (!validateSelections()) {
                     if ($('#validationMessage').is(':hidden')) {
-                        $('#validationMessage').text('Please correct the errors and try again').show();
+                        $('#validationMessage').html(`
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Please correct the errors and try again
+                        `).show();
                     }
                     return false;
                 }
                 
                 $('#loading').show();
                 $('#columnSelection').hide();
+                
+                // Start progress animation
+                startProgressBar();
                 
                 const formData = new FormData();
                 formData.append('analysis_type', analysis);
@@ -1095,19 +1499,55 @@
                     contentType: false,
                     processData: false,
                     success: function(response) {
-                        $('#loading').hide();
+                        // Complete progress animation
+                        completeProgressBar();
                         
                         if (response.success) {
                             renderResults(analysis, response.result);
                             $('#resultsContainer').show();
+                            
+                            // Enable download button if available
+                            if (response.result.download_available) {
+                                $('#downloadResults').show().data('result-data', response.result.download_data);
+                            } else {
+                                $('#downloadResults').hide();
+                            }
                         } else {
-                            $('#validationMessage').html(response.message).show();
+                            $('#validationMessage').html(`
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                ${response.message}
+                            `).show();
                             $('#columnSelection').show();
                         }
                     },
                     error: function(xhr, status, error) {
-                        $('#loading').hide();
-                        $('#validationMessage').html('An error occurred: ' + error).show();
+                        // Complete progress animation
+                        completeProgressBar();
+                        
+                        console.error("Error response:", xhr.responseText);
+                        let errorMsg = error;
+                        try {
+                            const errorObj = JSON.parse(xhr.responseText);
+                            if (errorObj && errorObj.message) {
+                                errorMsg = errorObj.message;
+                            }
+                        } catch (e) {}
+                        
+                        $('#validationMessage').html(`
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            An error occurred: ${errorMsg}
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#errorDetails">
+                                    Show technical details
+                                </button>
+                            </div>
+                            <div class="collapse mt-2" id="errorDetails">
+                                <div class="card card-body">
+                                    <pre>${xhr.responseText}</pre>
+                                </div>
+                            </div>
+                        `).show();
                         $('#columnSelection').show();
                     }
                 });
@@ -1116,9 +1556,58 @@
             // Render results
             function renderResults(analysisType, result) {
                 const container = $('#resultsContent').empty();
-                $('#resultsTitle').text(analysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ' Results');                
+                $('#resultsTitle').text(analysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ' Results');
+                
+                // Add timestamp
+                container.append(`
+                    <div class="alert alert-secondary mb-4">
+                        <i class="fas fa-clock me-1"></i>
+                        Analysis completed: ${new Date().toLocaleString()}
+                    </div>
+                `);
+                
+                // Display any warnings
+                if (result.warning) {
+                    container.append(`
+                        <div class="alert alert-warning mb-4">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Warning: ${result.warning}
+                        </div>
+                    `);
+                }
+                
+                // Show interpretation guide if available
+                if (result.interpretation_guide) {
+                    container.append(result.interpretation_guide);
+                }
+                
+                // Show diagnostic summary if available
+                if (result.diagnostic_summary) {
+                    container.append(result.diagnostic_summary);
+                }
                 
                 // Handle images if present
+                if (result.visualization) {
+                    container.append(`
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5>Visualization</h5>
+                                <button class="btn btn-sm btn-outline-secondary full-screen-btn" 
+                                        data-content-id="viz-img-${Date.now()}" 
+                                        data-title="Full-size Visualization">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                            <div class="card-body text-center">
+                                <img src="data:image/png;base64,${result.visualization}" 
+                                     id="viz-img-${Date.now()}"
+                                     class="img-fluid result-image" 
+                                     alt="Analysis Visualization">
+                            </div>
+                        </div>
+                    `);
+                }
+                
                 if (result[analysisType] && Array.isArray(result[analysisType])) {
                     result[analysisType].forEach(item => {
                         if (item.image) {
@@ -1134,97 +1623,124 @@
                             `);
                         }
                     });
-                }          
-                
-                // Handle statistics if present
-                if (result.statistics) {
-                    container.append(`
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5>Descriptive Statistics</h5>
-                            </div>
-                            <div class="card-body table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Statistic</th>
-                                            ${Object.keys(result.statistics).map(stat => 
-                                                `<th>${stat}</th>`
-                                            ).join('')}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${['count', 'mean', 'std', 'min', '25%', '50%', '75%', 'max'].map(metric => 
-                                            `<tr>
-                                                <th>${metric}</th>
-                                                ${Object.keys(result.statistics).map(stat => 
-                                                    `<td>${result.statistics[stat][metric] !== undefined ? 
-                                                        typeof result.statistics[stat][metric] === 'number' ? 
-                                                            result.statistics[stat][metric].toFixed(4) : 
-                                                            result.statistics[stat][metric] : 
-                                                        'N/A'}</td>`
-                                                ).join('')}
-                                            </tr>`
-                                        ).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    `);
                 }
                 
-                // Process any other result types
-                for (let key in result) {
-                    // Skip already processed parts
-                    if (key === 'statistics' || (key === analysisType && Array.isArray(result[key]))) {
-                        continue;
+                // Create expandable sections for tables
+                const tableKeys = [
+                    { key: 'statistics_html', title: 'Descriptive Statistics' },
+                    { key: 'correlation_matrix_html', title: 'Correlation Matrix' },
+                    { key: 'summary_html', title: 'Model Summary' },
+                    { key: 'coefficients_html', title: 'Coefficients' },
+                    { key: 'group_stats_html', title: 'Group Statistics' },
+                    { key: 'tukey_html', title: 'Tukey\'s HSD Test Results' },
+                    { key: 'contingency_table_html', title: 'Contingency Table' },
+                    { key: 'expected_table_html', title: 'Expected Frequencies' },
+                    { key: 'loadings_html', title: 'Component Loadings' },
+                    { key: 'variance_html', title: 'Explained Variance' },
+                    { key: 'centers_html', title: 'Cluster Centers' },
+                    { key: 'cluster_stats_html', title: 'Cluster Statistics' },
+                    { key: 'vif_data_html', title: 'Variance Inflation Factors' },
+                    { key: 'residual_stats_html', title: 'Residual Statistics' },
+                    { key: 'top_correlations_html', title: 'Top Correlations' },
+                    { key: 'transformed_data_preview', title: 'Transformed Data Preview' },
+                    { key: 'cluster_assignments_html', title: 'Cluster Assignments Preview' }
+                ];
+                
+                // Add tables in expandable sections
+                tableKeys.forEach(item => {
+                    if (result[item.key]) {
+                        const contentId = `content-${item.key}-${Date.now()}`;
+                        container.append(`
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <div class="expandable-section d-flex justify-content-between align-items-center">
+                                        <h5>${item.title}</h5>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-secondary full-screen-btn me-2" 
+                                                    data-content-id="${contentId}" 
+                                                    data-title="${item.title}">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                            <i class="fas fa-chevron-down"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="expandable-content">
+                                    <div class="card-body table-responsive">
+                                        <div id="${contentId}">${result[item.key]}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
                     }
+                });
+                
+                // Add key statistics
+                const statKeys = [
+                    'equation', 'r_squared', 'adj_r_squared', 'mean_squared_error', 
+                    'f_statistic', 'p_value', 'significance', 'accuracy', 'chi_square',
+                    'degrees_of_freedom', 'cramers_v', 'effect_size',
+                    'n_clusters', 'n_components', 'interpretation',
+                    'shapiro_p_value', 'bp_p_value', 'durbin_watson'
+                ];
+                
+                // Count number of stats available
+                const availableStats = statKeys.filter(key => result[key] !== undefined);
+                
+                if (availableStats.length > 0) {
+                    let statsHTML = '<div class="card mb-4"><div class="card-header"><h5>Key Results</h5></div><div class="card-body">';
                     
-                    if (typeof result[key] === 'object' && !Array.isArray(result[key])) {
-                        // For objects like classification_report
+                    // Create a grid layout for stats
+                    statsHTML += '<div class="row row-cols-1 row-cols-md-2 g-4">';
+                    
+                    statKeys.forEach(key => {
+                        if (result[key] !== undefined) {
+                            const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            
+                            statsHTML += `
+                                <div class="col">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">${label}</h6>
+                                            <p class="card-text">${result[key]}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    statsHTML += '</div></div></div>';
+                    container.prepend(statsHTML);
+                }
+                
+                // Add any other arrays of data
+                for (let key in result) {
+                    if (Array.isArray(result[key]) && 
+                        key !== analysisType && 
+                        !key.endsWith('_html')) {
+                        
+                        const title = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        
                         container.append(`
                             <div class="card mb-4">
-                                <div class="card-header">
-                                    <h5>${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h5>
+                                <div class="card-header expandable-section">
+                                    <h5>${title}</h5>
+                                    <i class="fas fa-chevron-down"></i>
                                 </div>
-                                <div class="card-body">
-                                    <pre class="bg-light p-3 rounded">${JSON.stringify(result[key], null, 2)}</pre>
+                                <div class="expandable-content">
+                                    <div class="card-body">
+                                        <ul class="list-group">
+                                            ${result[key].map(item => 
+                                                `<li class="list-group-item">${typeof item === 'object' ? JSON.stringify(item) : item}</li>`
+                                            ).join('')}
+                                        </ul>
+                                    </div>
                                 </div>
-                            </div>
-                        `);
-                    } else if (Array.isArray(result[key])) {
-                        // For arrays of data
-                        container.append(`
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h5>${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-group">
-                                        ${result[key].map(item => 
-                                            `<li class="list-group-item">${JSON.stringify(item)}</li>`
-                                        ).join('')}
-                                    </ul>
-                                </div>
-                            </div>
-                        `);
-                    } else {
-                        // For simple values
-                        container.append(`
-                            <div class="alert alert-info">
-                                <strong>${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</strong> 
-                                ${result[key]}
                             </div>
                         `);
                     }
                 }
-                
-                // Add timestamp
-                container.append(`
-                    <div class="text-muted mt-4 text-end">
-                        <small>Analysis completed: ${new Date().toLocaleString()}</small>
-                    </div>
-                `);
             }
             
             // Initialize at step 1

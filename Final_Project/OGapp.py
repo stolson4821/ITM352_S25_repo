@@ -15,6 +15,7 @@ from scipy import stats
 from scipy.stats import chi2_contingency
 import seaborn as sns
 
+
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
