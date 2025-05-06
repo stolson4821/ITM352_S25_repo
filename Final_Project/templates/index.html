@@ -73,6 +73,34 @@
             margin-bottom: 20px;
             overflow-x: auto;
         }
+
+        .table-centered td, .table-centered th {
+            text-align: center !important;
+        }
+
+        .table-enhanced {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-enhanced th {
+            border-bottom: 2px solid rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        .table-enhanced td {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+            padding: 8px 15px;
+        }
+
+        .table-enhanced tr:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .table-enhanced tr:last-child td {
+            border-bottom: none;
+        }
         .select2-container {
             width: 100% !important;
         }
@@ -1519,6 +1547,7 @@
                             `).show();
                             $('#columnSelection').show();
                         }
+                    $('#resultsContent .table').addClass('table-centered');
                     },
                     error: function(xhr, status, error) {
                         // Complete progress animation
@@ -1557,7 +1586,7 @@
             function renderResults(analysisType, result) {
                 const container = $('#resultsContent').empty();
                 $('#resultsTitle').text(analysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ' Results');
-                
+
                 // Add timestamp
                 container.append(`
                     <div class="alert alert-secondary mb-4">
@@ -1741,6 +1770,7 @@
                         `);
                     }
                 }
+                $('#resultsContent .table').addClass('table-centered table-enhanced');
             }
             
             // Initialize at step 1
