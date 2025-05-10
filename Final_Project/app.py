@@ -24,7 +24,7 @@ import traceback
 import logging
 from analysis_functions import StatisticalAnalysisTool, run_analysis
 
-# Configure logging
+# Configure logging into the app.log file, This ensures that there is accurate account of user traffic as well as error handling identification that can be double checked when operating. 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -36,11 +36,12 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Global variables
+# Needed Global Variables.
 cached_df = None
 analysis_tool = None
-MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB limit
+MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB limit (Arbitrary and can be adjusted.)
 
+# This ensures that the conversion of the visualizations are transcoded to HTML accepted formats. Allowing for seamless integration to the page. (Took me a while to figure it out and get it right.)
 def df_to_base64(fig):
     """Convert matplotlib figure to base64 encoded string"""
     buf = io.BytesIO()
@@ -54,6 +55,7 @@ def df_to_base64(fig):
         plt.close(fig)
         return None
 
+# This is the initial stem after the import is complete. It ensures that the program istelf identifies the types of variables to add a concrete layer of User friendliness to the overall program.
 def get_columns_info(df):
     """Extract column information from dataframe"""
     try:
@@ -68,6 +70,7 @@ def get_columns_info(df):
         logger.error(f"Error getting column info: {str(e)}")
         return {}
 
+# This Ensures that the  CSV is not empty, impropperly formatted, or too large for the analysis tools. (I chose an arbitrary size limit for columns and rows.)
 def validate_csv(file_path):
     """Validate CSV file format and content"""
     try:
@@ -85,7 +88,7 @@ def validate_csv(file_path):
         # Check total file size
         file_size = os.path.getsize(file_path)
         if file_size > MAX_UPLOAD_SIZE:
-            return False, f"File size exceeds maximum limit of {MAX_UPLOAD_SIZE/(1024*1024)}MB"
+            return False, f"File size exceeds maximum limit of {MAX_UPLOAD_SIZE/(1024*1024)}MB" # Arbitrary size constraint.
             
         # Check for at least some numeric columns (needed for statistical analysis)
         numeric_cols = df.select_dtypes(include=[np.number]).columns
@@ -100,10 +103,12 @@ def validate_csv(file_path):
     except Exception as e:
         return False, f"Error validating CSV: {str(e)}"
 
+# Simple rendering of the Index page.
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html') # Single page application interface.
 
+# This page is where the CSV if uploaded to the server and placed into a working folder for the actual analysis tool to deirectly work off of. Additionally stores log data in the app.log for the actions taken by uploading the file.
 @app.route('/upload', methods=['POST'])
 def upload():
     global cached_df, analysis_tool
@@ -168,6 +173,7 @@ def upload():
         logger.error(f"Error in upload: {str(e)}")
         return jsonify(success=False, message=f"Error: {str(e)}")
 
+# The meat and potatoes of the program are here. This Flask application routes and calls on the originaly functions py app to run the analysis, formats everything nessessary into a complimentary HTML friendly format. This function's layout was AI generated however I did alot of input myself to ensure there was checks and balances for the user to ensure they chose the correct types of data along with a few other things. No AI would be able to create this application on its own. I would actually be impressed. I tried to see if it would be possible but none were up to the task for limits being met. There was alot of sweat and time put into this program from inception to implimentation.
 @app.route('/analyze', methods=['POST'])
 def analyze():
     global cached_df, analysis_tool
@@ -179,7 +185,7 @@ def analyze():
         analysis_type = request.form.get('analysis_type')
         logger.info(f"Requested analysis: {analysis_type}")
         
-        # Capture all form data and selected columns
+        # Capture the form data and selected columns
         selected_columns = request.form.getlist('columns')
         
         # Set selected columns in the tool
@@ -191,6 +197,7 @@ def analyze():
         # Initialize result dictionary
         result = {}
         
+        # First Analysis type from functions.py
         # Process based on analysis type
         if analysis_type == 'descriptive_statistics':
             # Get numeric columns
@@ -249,14 +256,14 @@ def analyze():
             fig = plt.figure(figsize=(10, 5 * len(numeric_cols)))
             
             for i, col in enumerate(numeric_cols, 1):
-                # Histogram
+                # Histogram implementation 
                 plt.subplot(len(numeric_cols), 2, 2*i-1)
                 sns.histplot(data[col].dropna(), kde=True)
                 plt.title(f'Histogram of {col}')
                 plt.xlabel(col)
                 plt.ylabel('Frequency')
                 
-                # Box plot
+                # Box plot implementation 
                 plt.subplot(len(numeric_cols), 2, 2*i)
                 sns.boxplot(x=data[col].dropna(), orient='h')
                 plt.title(f'Box Plot of {col}')
@@ -264,7 +271,8 @@ def analyze():
             
             plt.tight_layout()
             result['visualization'] = df_to_base64(fig)
-            
+
+        # Second Analysis type from functions.py    
         elif analysis_type == 'scatter_matrix':
             if len(selected_columns) < 2:
                 return jsonify(success=False, message='Please select at least two columns')
@@ -290,7 +298,8 @@ def analyze():
             # Add correlation matrix for additional insight
             result['correlation_matrix_html'] = cached_df[numeric_cols].corr().to_html(
                 classes='table table-striped', float_format='%.4f')
-            
+
+        # Third Analysis type from functions.py    
         elif analysis_type == 'linear_regression':
             # Get dependent variable
             y_col = request.form.get('dependent_var')
@@ -384,7 +393,8 @@ def analyze():
             
             plt.tight_layout()
             result['visualization'] = df_to_base64(fig)
-            
+
+        # Fourth Analysis type from functions.py    
         elif analysis_type == 'multiple_regression':
             # Get dependent variable
             y_col = request.form.get('dependent_var')
@@ -499,7 +509,8 @@ def analyze():
             except Exception as e:
                 logger.error(f"Multiple regression error: {str(e)}")
                 return jsonify(success=False, message=f"Error in regression analysis: {str(e)}")
-            
+
+        # Fifth Analysis type from functions.py    
         elif analysis_type == 'polynomial_regression':
             # Get dependent variable
             y_col = request.form.get('dependent_var')
@@ -611,7 +622,8 @@ def analyze():
             
             plt.tight_layout()
             result['visualization'] = df_to_base64(fig)
-            
+
+        # Sixth Analysis type from functions.py    
         elif analysis_type == 'logistic_regression':
             # Get dependent variable
             y_col = request.form.get('dependent_var')
@@ -733,7 +745,8 @@ def analyze():
             except Exception as e:
                 logger.error(f"Logistic regression error: {str(e)}")
                 return jsonify(success=False, message=f"Error in logistic regression: {str(e)}")
-            
+
+        # Seventh Analysis type from functions.py    
         elif analysis_type == 'anova':
             # Get dependent variable
             y_col = request.form.get('dependent_var')
@@ -831,7 +844,8 @@ def analyze():
             except Exception as e:
                 logger.error(f"ANOVA error: {str(e)}")
                 return jsonify(success=False, message=f"Error in ANOVA: {str(e)}")
-            
+
+        # Eigth Analysis type from functions.py    
         elif analysis_type == 'chi_square':
             # Get two categorical variables
             var1 = request.form.get('var1')
@@ -945,7 +959,8 @@ def analyze():
             except Exception as e:
                 logger.error(f"Chi-square test error: {str(e)}")
                 return jsonify(success=False, message=f"Error in Chi-square test: {str(e)}")
-            
+
+        # Nineth Analysis type from functions.py    
         elif analysis_type == 'correlation':
             # Check if there are enough numeric columns
             numeric_cols = [col for col in selected_columns if col in analysis_tool.numeric_columns]
@@ -1023,7 +1038,8 @@ def analyze():
             except Exception as e:
                 logger.error(f"Correlation analysis error: {str(e)}")
                 return jsonify(success=False, message=f"Error in correlation analysis: {str(e)}")
-            
+
+        # Tenth Analysis type from functions.py    
         elif analysis_type == 'pca':
             # Check if there are enough numeric columns
             numeric_cols = [col for col in selected_columns if col in analysis_tool.numeric_columns]
@@ -1155,7 +1171,8 @@ def analyze():
             except Exception as e:
                 logger.error(f"PCA analysis error: {str(e)}")
                 return jsonify(success=False, message=f"Error in PCA analysis: {str(e)}")
-            
+
+        # Eleventh Analysis type from functions.py    
         elif analysis_type == 'clustering':
             # Check if there are enough numeric columns
             numeric_cols = [col for col in selected_columns if col in analysis_tool.numeric_columns]
@@ -1302,7 +1319,8 @@ def analyze():
             except Exception as e:
                 logger.error(f"Clustering analysis error: {str(e)}")
                 return jsonify(success=False, message=f"Error in clustering analysis: {str(e)}")
-            
+
+        # Twelvth Analysis type from functions.py    
         elif analysis_type == 'residual_diagnostics':
             # Get dependent variable
             y_col = request.form.get('dependent_var')
@@ -1430,16 +1448,17 @@ def analyze():
             except Exception as e:
                 logger.error(f"Residual diagnostics error: {str(e)}")
                 return jsonify(success=False, message=f"Error in residual diagnostics: {str(e)}")
-
+    #Testing section for analysis that does not exist or error exceptions
         else:
             return jsonify(success=False, message='Unknown analysis type')
-            
+           
         return jsonify(success=True, result=result)
         
     except Exception as e:
         logger.error(f"Analysis error: {str(e)}\n{traceback.format_exc()}")
         return jsonify(success=False, message=f"Error: {str(e)}", traceback=traceback.format_exc())
 
+# Self explanitory function, only make it available for a few tools that are more complex in nature. 
 @app.route('/download/<analysis_type>', methods=['POST'])
 def download_results(analysis_type):
     """Download analysis results as CSV"""
@@ -1482,6 +1501,7 @@ def download_results(analysis_type):
         logger.error(f"Download error: {str(e)}")
         return jsonify(success=False, message=f"Error: {str(e)}")
 
+# This function serves the user to ensure they are able to undo their memory while using the application. I wanted to add this as i hope to further develop this in the future where there would be a history log available for the user to then generate a dashboard of some kind based on their historical analysis's. But if they need to wipe their work they can do so. 
 @app.route('/memory_cleanup', methods=['POST'])
 def memory_cleanup():
     """Clear cached data to free memory"""
@@ -1497,6 +1517,7 @@ def memory_cleanup():
         logger.error(f"Memory cleanup error: {str(e)}")
         return jsonify(success=False, message=f"Error: {str(e)}")
 
+# This function allows the user to monitor how much memory they are using in three different catagories. How much memory your entire program is using, How much memory just your data table, How much memory is still available on your computer. This is important especially when running larger than normal files through these rigorous functions. For the size of the file I have restricted this program too currently its not that important currently. But still cool and will assist in the scalability of this application.
 @app.route('/get_memory_usage', methods=['GET'])
 def get_memory_usage():
     """Get current memory usage info"""
@@ -1518,7 +1539,7 @@ def get_memory_usage():
         logger.error(f"Memory usage check error: {str(e)}")
         return jsonify(success=False, message=f"Error: {str(e)}")
 
-# Add error handler for internal server errors
+# Error handler for internal server errors (displays log errors and prompts the user to inspect it.)
 @app.errorhandler(500)
 def server_error(e):
     logger.error(f"Server error: {str(e)}")
