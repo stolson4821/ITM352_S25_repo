@@ -1499,8 +1499,8 @@ def download_results(analysis_type):
             
     except Exception as e:
         logger.error(f"Download error: {str(e)}")
-        return jsonify(success=False, message=f"Error: {str(e)}")
-
+        return jsonify(success=False, message=f"Error: {str(e)}") 
+           
 # This function serves the user to ensure they are able to undo their memory while using the application. I wanted to add this as i hope to further develop this in the future where there would be a history log available for the user to then generate a dashboard of some kind based on their historical analysis's. But if they need to wipe their work they can do so. 
 @app.route('/memory_cleanup', methods=['POST'])
 def memory_cleanup():
