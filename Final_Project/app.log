@@ -34,3 +34,89 @@
 2025-05-13 12:19:35,622 - werkzeug - INFO - 127.0.0.1 - - [13/May/2025 12:19:35] "GET /get_memory_usage HTTP/1.1" 200 -
 2025-05-13 12:20:05,622 - werkzeug - INFO - 127.0.0.1 - - [13/May/2025 12:20:05] "GET /get_memory_usage HTTP/1.1" 200 -
 2025-05-13 12:20:35,622 - werkzeug - INFO - 127.0.0.1 - - [13/May/2025 12:20:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 11:57:13,879 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-05-22 11:57:13,880 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-05-22 11:57:13,881 - werkzeug - INFO -  * Restarting with stat
+2025-05-22 11:57:14,950 - werkzeug - WARNING -  * Debugger is active!
+2025-05-22 11:57:14,962 - werkzeug - INFO -  * Debugger PIN: 106-580-298
+2025-05-22 11:57:25,201 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:57:25] "GET / HTTP/1.1" 200 -
+2025-05-22 11:57:25,840 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:57:25] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-05-22 11:57:51,150 - __main__ - INFO - Loaded CSV: dataset.csv, Shape: (1000, 19)
+2025-05-22 11:57:51,167 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:57:51] "POST /upload HTTP/1.1" 200 -
+2025-05-22 11:57:52,191 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:57:52] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 11:58:22,197 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:58:22] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 11:58:52,194 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:58:52] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 11:59:18,861 - __main__ - INFO - Requested analysis: anova
+2025-05-22 11:59:22,200 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:59:22] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 11:59:47,814 - __main__ - INFO - Loaded CSV: dataset.csv, Shape: (1000, 19)
+2025-05-22 11:59:47,835 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:59:47] "POST /upload HTTP/1.1" 200 -
+2025-05-22 11:59:48,880 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 11:59:48] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:00:18,867 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:00:18] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:00:29,099 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:29,103 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:30,156 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:30,160 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:33,367 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:33,371 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:34,026 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:34,029 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:36,357 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:36,360 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:00:48,890 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:00:48] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:00:54,299 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:00:54] "POST /analyze HTTP/1.1" 200 -
+2025-05-22 12:01:18,869 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:01:18] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:01:48,870 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:01:48] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:02:18,876 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:02:18] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:02:30,827 - __main__ - INFO - Requested analysis: anova
+2025-05-22 12:02:48,866 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:02:48] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:03:00,590 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:03:00] "GET / HTTP/1.1" 200 -
+2025-05-22 12:03:04,371 - __main__ - INFO - Loaded CSV: dataset.csv, Shape: (1000, 19)
+2025-05-22 12:03:04,393 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:03:04] "POST /upload HTTP/1.1" 200 -
+2025-05-22 12:03:05,432 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:03:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:03:35,431 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:03:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:03:42,947 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:03:42,952 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:03:43,930 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:03:43,933 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:03:47,039 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:03:47,043 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:03:47,664 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:03:47,668 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:03:49,587 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:03:49,590 - matplotlib.category - INFO - Using categorical units to plot a list of strings that are all parsable as floats or dates. If these strings should be plotted as numbers, cast to the appropriate data type before plotting.
+2025-05-22 12:04:05,600 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:04:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:04:05,601 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:04:05] "POST /analyze HTTP/1.1" 200 -
+2025-05-22 12:04:35,421 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:04:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:05:05,422 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:05:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:05:29,120 - __main__ - INFO - Requested analysis: anova
+2025-05-22 12:05:29,600 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:05:29] "POST /analyze HTTP/1.1" 200 -
+2025-05-22 12:05:35,416 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:05:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:06:05,420 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:06:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:06:35,422 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:06:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:07:05,427 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:07:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:07:30,169 - __main__ - INFO - Requested analysis: linear_regression
+2025-05-22 12:07:30,400 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:07:30] "POST /analyze HTTP/1.1" 200 -
+2025-05-22 12:07:35,417 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:07:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:08:03,635 - __main__ - INFO - Requested analysis: descriptive_statistics
+2025-05-22 12:08:03,935 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:08:03] "POST /analyze HTTP/1.1" 200 -
+2025-05-22 12:08:05,425 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:08:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:08:35,422 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:08:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:09:05,402 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:09:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:09:24,579 - __main__ - INFO - Requested analysis: linear_regression
+2025-05-22 12:09:24,806 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:09:24] "POST /analyze HTTP/1.1" 200 -
+2025-05-22 12:09:35,401 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:09:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:10:05,400 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:10:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:10:35,400 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:10:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:11:05,410 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:11:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:11:28,578 - __main__ - INFO - Requested analysis: chi_square
+2025-05-22 12:11:28,873 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:11:28] "POST /analyze HTTP/1.1" 200 -
+2025-05-22 12:11:35,402 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:11:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:12:05,401 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:12:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:12:35,409 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:12:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:13:05,456 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:13:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:13:35,452 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:13:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:14:16,468 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:14:16] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:14:48,907 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:14:48] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:15:05,400 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:15:05] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-05-22 12:15:35,404 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:15:35] "GET /get_memory_usage HTTP/1.1" 200 -
