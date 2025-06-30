@@ -120,3 +120,37 @@
 2025-05-22 12:14:48,907 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:14:48] "GET /get_memory_usage HTTP/1.1" 200 -
 2025-05-22 12:15:05,400 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:15:05] "GET /get_memory_usage HTTP/1.1" 200 -
 2025-05-22 12:15:35,404 - werkzeug - INFO - 127.0.0.1 - - [22/May/2025 12:15:35] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-06-18 10:14:15,684 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-18 10:14:15,684 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-18 10:14:15,685 - werkzeug - INFO -  * Restarting with stat
+2025-06-18 10:14:17,442 - werkzeug - WARNING -  * Debugger is active!
+2025-06-18 10:14:17,452 - werkzeug - INFO -  * Debugger PIN: 441-239-992
+2025-06-18 10:14:28,472 - werkzeug - INFO - 127.0.0.1 - - [18/Jun/2025 10:14:28] "GET / HTTP/1.1" 200 -
+2025-06-18 10:14:30,304 - werkzeug - INFO - 127.0.0.1 - - [18/Jun/2025 10:14:30] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-06-28 14:11:22,537 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-28 14:11:22,537 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-28 14:11:22,538 - werkzeug - INFO -  * Restarting with stat
+2025-06-28 14:11:24,119 - werkzeug - WARNING -  * Debugger is active!
+2025-06-28 14:11:24,131 - werkzeug - INFO -  * Debugger PIN: 441-239-992
+2025-06-28 14:11:36,458 - werkzeug - INFO - 127.0.0.1 - - [28/Jun/2025 14:11:36] "GET / HTTP/1.1" 200 -
+2025-06-28 14:11:36,677 - werkzeug - INFO - 127.0.0.1 - - [28/Jun/2025 14:11:36] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-06-29 17:09:34,183 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-06-29 17:09:34,187 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-06-29 17:09:34,188 - werkzeug - INFO -  * Restarting with stat
+2025-06-29 17:09:35,772 - werkzeug - WARNING -  * Debugger is active!
+2025-06-29 17:09:35,781 - werkzeug - INFO -  * Debugger PIN: 441-239-992
+2025-06-29 17:09:47,467 - werkzeug - INFO - 127.0.0.1 - - [29/Jun/2025 17:09:47] "GET / HTTP/1.1" 200 -
+2025-06-29 17:09:52,768 - __main__ - INFO - Loaded CSV: dataset.csv, Shape: (1000, 19)
+2025-06-29 17:09:52,780 - werkzeug - INFO - 127.0.0.1 - - [29/Jun/2025 17:09:52] "POST /upload HTTP/1.1" 200 -
+2025-06-29 17:09:53,799 - werkzeug - INFO - 127.0.0.1 - - [29/Jun/2025 17:09:53] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-06-29 17:10:02,644 - __main__ - INFO - Loaded CSV: dataset.csv, Shape: (1000, 19)
+2025-06-29 17:10:02,649 - werkzeug - INFO - 127.0.0.1 - - [29/Jun/2025 17:10:02] "POST /upload HTTP/1.1" 200 -
+2025-06-29 17:10:03,668 - werkzeug - INFO - 127.0.0.1 - - [29/Jun/2025 17:10:03] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-06-29 17:10:22,116 - __main__ - INFO - Requested analysis: correlation
+2025-06-29 17:10:22,247 - werkzeug - INFO - 127.0.0.1 - - [29/Jun/2025 17:10:22] "POST /analyze HTTP/1.1" 200 -
+2025-06-29 17:10:33,672 - werkzeug - INFO - 127.0.0.1 - - [29/Jun/2025 17:10:33] "GET /get_memory_usage HTTP/1.1" 200 -
+2025-06-29 17:10:49,857 - __main__ - INFO - Requested analysis: descriptive_statistics
+2025-06-29 17:10:49,990 - werkzeug - INFO - 127.0.0.1 - - [29/Jun/2025 17:10:49] "POST /analyze HTTP/1.1" 200 -

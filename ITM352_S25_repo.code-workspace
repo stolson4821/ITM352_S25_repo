@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"name": "ITM352_S25_repo",
+			"path": "."
+		},
+		{
+			"name": "Hello_World",
+			"path": "../Hello_World"
+		},
+		{
+			"name": "Stats",
+			"path": "../Stats"
+		},
+		{
+			"path": "../Trading"
+		},
+		{
+			"path": "../Reddit Q Scraper"
+		},
+		{
+			"path": "../GreenMiner_Websitepreview"
+		},
+		{
+			"path": "../Financial Tools"
+		}
+	],
+	"settings": {}
+}
